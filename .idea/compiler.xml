@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="irpc-framework-core" target="1.5" />
+      <module name="irpc-framework-core" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
