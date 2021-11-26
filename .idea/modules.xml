@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/irpc-framework.iml" filepath="$PROJECT_DIR$/.idea/irpc-framework.iml" />
+      <module fileurl="file://$PROJECT_DIR$/irpc-framework-core/irpc-framework-core.iml" filepath="$PROJECT_DIR$/irpc-framework-core/irpc-framework-core.iml" />
     </modules>
   </component>
 </project>
