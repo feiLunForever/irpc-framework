@@ -1,8 +1,8 @@
 package org.idea.irpc.framework.core.proxy.javassist;
 
 import org.idea.irpc.framework.core.proxy.ProxyFactory;
+import org.idea.irpc.framework.core.proxy.jdk.JDKClientInvocationHandler;
 
-import java.lang.reflect.InvocationHandler;
 
 /**
  * @Author linhao
@@ -11,8 +11,8 @@ import java.lang.reflect.InvocationHandler;
 public class JavassistProxyFactory implements ProxyFactory {
 
     @Override
-    public <T> T getProxy(Object target, InvocationHandler handler) throws Throwable {
+    public <T> T getProxy(Class clazz) throws Throwable {
         return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                target.getClass(), handler);
+                clazz, new JDKClientInvocationHandler(clazz));
     }
 }

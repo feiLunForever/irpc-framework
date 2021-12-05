@@ -1,5 +1,6 @@
 package org.idea.irpc.framework.core.client;
 
+import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,9 +10,14 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
+import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
+import org.idea.irpc.framework.core.proxy.ProxyFactory;
+import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
+import org.idea.irpc.framework.interfaces.DataService;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
-import org.idea.irpc.framework.core.proxy.RpcInvocation;
+
+import java.util.List;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
 
@@ -21,7 +27,7 @@ import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_Q
  */
 public class Client {
 
-    public static void main(String[] args) throws InterruptedException{
+    public static void main(String[] args) throws InterruptedException {
         EventLoopGroup clientGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(clientGroup);
@@ -34,7 +40,7 @@ public class Client {
                 ch.pipeline().addLast(new ClientHandler());
             }
         });
-        ChannelFuture channelFuture = bootstrap.connect("localhost",9090).sync();
+        ChannelFuture channelFuture = bootstrap.connect("localhost", 9090).sync();
         System.out.println("============ 服务启动 ============");
         Client client = new Client();
         client.startClient(channelFuture);
@@ -43,33 +49,37 @@ public class Client {
     }
 
 
-    public void startSend(){
+    public void startSend() {
         Thread sendDataJob = new Thread(new SendDataJob());
         sendDataJob.start();
     }
 
-    public void startClient(ChannelFuture channelFuture){
+    public void startClient(ChannelFuture channelFuture) {
         Thread asyncSendJob = new Thread(new AsyncSendJob(channelFuture));
         asyncSendJob.start();
     }
 
-    class SendDataJob implements Runnable{
+    class SendDataJob implements Runnable {
 
         @Override
         public void run() {
             while (true) {
                 try {
                     Thread.sleep(1000);
-                    RpcInvocation rpcInvocation = JDKProxyFactory.getProxy(RpcInvocation.class);
-                    rpcInvocation.sendData("send data");
+                    //调用器
+                    ProxyFactory proxyFactory = new JavassistProxyFactory();
+                    Object resp = proxyFactory.getProxy(DataService.class);
+                    System.out.println("end");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
                 }
             }
         }
     }
 
-    class AsyncSendJob implements Runnable{
+    class AsyncSendJob implements Runnable {
 
         private ChannelFuture channelFuture;
 
@@ -81,10 +91,10 @@ public class Client {
         public void run() {
             while (true) {
                 try {
-                    String data = SEND_QUEUE.take();
-                    RpcProtocol rpcProtocol = new RpcProtocol(data.getBytes().length,data.getBytes());
+                    RpcInvocation data = SEND_QUEUE.take();
+                    String json = JSON.toJSONString(data);
+                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
                     channelFuture.channel().writeAndFlush(rpcProtocol);
-                    System.out.println("发送数据"+rpcProtocol);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

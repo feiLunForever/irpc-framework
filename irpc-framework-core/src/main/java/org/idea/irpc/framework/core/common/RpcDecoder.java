@@ -47,7 +47,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
             }
             byte[] data = new byte[length];
             byteBuf.readBytes(data);
-            RpcProtocol rpcProtocol = new RpcProtocol(data.length, data);
+            RpcProtocol rpcProtocol = new RpcProtocol(data);
             out.add(rpcProtocol);
         }
     }

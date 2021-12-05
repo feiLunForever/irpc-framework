@@ -14,7 +14,7 @@ public class Test {
 
 
     public static void main(String[] args) throws Throwable {
-        final HelloService target = new HelloServiceImpl();
+        final HelloServiceImpl target = new HelloServiceImpl();
         ProxyFactory factory = new JavassistProxyFactory();
 
         InvocationHandler handler = new InvocationHandler() {
@@ -40,9 +40,8 @@ public class Test {
             }
         };
 
-        HelloService proxy = factory.getProxy(target, handler);
+        HelloService proxy = factory.getProxy(target.getClass());
         System.out.println(proxy);
-
         proxy.say("ricky");
         proxy.echo("world");
         proxy.getHobbies();

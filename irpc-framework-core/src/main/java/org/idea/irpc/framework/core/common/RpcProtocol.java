@@ -1,5 +1,6 @@
 package org.idea.irpc.framework.core.common;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.MAGIC_NUMBER;
@@ -8,7 +9,9 @@ import static org.idea.irpc.framework.core.common.constants.RpcConstants.MAGIC_N
  * @Author linhao
  * @Date created in 9:48 上午 2021/12/4
  */
-public class RpcProtocol {
+public class RpcProtocol implements Serializable {
+
+    private static final long serialVersionUID = 5359096060555795690L;
 
     private short magicNumber = MAGIC_NUMBER;
 
@@ -16,8 +19,8 @@ public class RpcProtocol {
 
     private byte[] content;
 
-    public RpcProtocol(int contentLength, byte[] content) {
-        this.contentLength = contentLength;
+    public RpcProtocol(byte[] content) {
+        this.contentLength = content.length;
         this.content = content;
     }
 
@@ -48,7 +51,7 @@ public class RpcProtocol {
     @Override
     public String toString() {
         return "RpcProtocol{" +
-                " contentLength=" + contentLength +
+                "contentLength=" + contentLength +
                 ", content=" + Arrays.toString(content) +
                 '}';
     }
