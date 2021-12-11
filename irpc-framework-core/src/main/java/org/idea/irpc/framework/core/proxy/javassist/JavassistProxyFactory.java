@@ -1,7 +1,6 @@
 package org.idea.irpc.framework.core.proxy.javassist;
 
 import org.idea.irpc.framework.core.proxy.ProxyFactory;
-import org.idea.irpc.framework.core.proxy.jdk.JDKClientInvocationHandler;
 
 
 /**
@@ -13,6 +12,6 @@ public class JavassistProxyFactory implements ProxyFactory {
     @Override
     public <T> T getProxy(Class clazz) throws Throwable {
         return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                clazz, new JDKClientInvocationHandler(clazz));
+                clazz, new JavassistInvocationHandler(clazz));
     }
 }

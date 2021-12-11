@@ -14,10 +14,8 @@ import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
 import org.idea.irpc.framework.core.proxy.ProxyFactory;
 import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
-import org.idea.irpc.framework.interfaces.DataService;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
-
-import java.util.List;
+import org.idea.irpc.framework.interfaces.DataService;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
 
@@ -44,6 +42,7 @@ public class Client {
         System.out.println("============ 服务启动 ============");
         Client client = new Client();
         client.startClient(channelFuture);
+        //模拟数据发送
         client.startSend();
         Thread.yield();
     }
@@ -63,19 +62,24 @@ public class Client {
 
         @Override
         public void run() {
-            while (true) {
+//            while (true) {
+            long beginTime = System.currentTimeMillis();
+            for (int i = 0; i < 2500000; i++) {
                 try {
-                    Thread.sleep(1000);
-                    //调用器
+//                    Thread.sleep(1000);
+//                    调用器
+//                    ProxyFactory proxyFactory = new JDKProxyFactory();
                     ProxyFactory proxyFactory = new JavassistProxyFactory();
-                    Object resp = proxyFactory.getProxy(DataService.class);
-                    System.out.println("end");
+                    DataService resp = proxyFactory.getProxy(DataService.class);
+                    resp.getList();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
+//            }
             }
+            System.out.println("执行耗时："+(System.currentTimeMillis()-beginTime));
         }
     }
 

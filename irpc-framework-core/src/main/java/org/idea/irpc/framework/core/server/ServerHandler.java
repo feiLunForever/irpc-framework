@@ -1,7 +1,6 @@
 package org.idea.irpc.framework.core.server;
 
 import com.alibaba.fastjson.JSON;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,7 +24,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
         String json = new String(rpcProtocol.getContent(), 0, rpcProtocol.getContentLength());
         RpcInvocation rpcInvocation = JSON.parseObject(json, RpcInvocation.class);
-        System.out.println("[server] 接收到数据请求" + rpcInvocation.toString());
         Object aimObject = PROVIDER_CLASS_MAP.get(rpcInvocation.getTargetServiceName());
         Method[] methods = aimObject.getClass().getDeclaredMethods();
         Object result = null;

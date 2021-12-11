@@ -1,7 +1,6 @@
 package org.idea.irpc.framework.core.proxy.javassist;
 
 import javassist.*;
-import org.idea.irpc.framework.core.common.utils.CommonUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -49,58 +48,56 @@ public class ProxyGenerator {
 
         proxy.addConstructor(CtNewConstructor.defaultConstructor(proxy));
         targetClass.getInterfaces();
-        // 获取被代理类的所有接口
-        List<Class<?>> interfaces = CommonUtils.getAllInterfaces(targetClass);
-
+        //约定被代理对象本身就是interface
         List<Method> methods = new ArrayList<>();
-        for (Class cls : interfaces) {
-            CtClass ctClass = pool.get(cls.getName());
-            proxy.addInterface(ctClass);
+        CtClass ctClass = pool.get(targetClass.getName());
+        //生成的代理对象要求继承指定的接口
+        proxy.addInterface(ctClass);
 
-            Method[] arr = cls.getDeclaredMethods();
-            for (Method method : arr) {
-                int ix = methods.size();
-                Class<?> rt = method.getReturnType();
-                Class<?>[] pts = method.getParameterTypes();
+        Method[] arr = targetClass.getDeclaredMethods();
+        //生成代理对象的方法集合
+        for (Method method : arr) {
+            int ix = methods.size();
+            Class<?> rt = method.getReturnType();
+            Class<?>[] pts = method.getParameterTypes();
 
-                StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
-                for (int j = 0; j < pts.length; j++) {
-                    code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
+            StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
+            for (int j = 0; j < pts.length; j++) {
+                code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
+            }
+            code.append(" Object ret = handler.invoke(this, methods[" + ix + "], args);");
+            if (!Void.TYPE.equals(rt)) {
+                code.append(" return ").append(asArgument(rt, "ret")).append(";");
+            }
+
+            StringBuilder sb = new StringBuilder(1024);
+            sb.append(modifier(method.getModifiers())).append(' ').append(getParameterType(rt)).append(' ').append(method.getName());
+            sb.append('(');
+            for (int i = 0; i < pts.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
                 }
-                code.append(" Object ret = handler.invoke(this, methods[" + ix + "], args);");
-                if (!Void.TYPE.equals(rt)) {
-                    code.append(" return ").append(asArgument(rt, "ret")).append(";");
-                }
+                sb.append(getParameterType(pts[i]));
+                sb.append(" arg").append(i);
+            }
+            sb.append(')');
 
-                StringBuilder sb = new StringBuilder(1024);
-                sb.append(modifier(method.getModifiers())).append(' ').append(getParameterType(rt)).append(' ').append(method.getName());
-                sb.append('(');
-                for (int i = 0; i < pts.length; i++) {
+            Class<?>[] ets = method.getExceptionTypes();    //方法抛出异常
+            if (ets != null && ets.length > 0) {
+                sb.append(" throws ");
+                for (int i = 0; i < ets.length; i++) {
                     if (i > 0) {
                         sb.append(',');
                     }
-                    sb.append(getParameterType(pts[i]));
-                    sb.append(" arg").append(i);
+                    sb.append(getParameterType(ets[i]));
                 }
-                sb.append(')');
-
-                Class<?>[] ets = method.getExceptionTypes();    //方法抛出异常
-                if (ets != null && ets.length > 0) {
-                    sb.append(" throws ");
-                    for (int i = 0; i < ets.length; i++) {
-                        if (i > 0) {
-                            sb.append(',');
-                        }
-                        sb.append(getParameterType(ets[i]));
-                    }
-                }
-                sb.append('{').append(code.toString()).append('}');
-
-                CtMethod ctMethod = CtMethod.make(sb.toString(), proxy);
-                proxy.addMethod(ctMethod);
-
-                methods.add(method);
             }
+            sb.append('{').append(code.toString()).append('}');
+
+            CtMethod ctMethod = CtMethod.make(sb.toString(), proxy);
+            proxy.addMethod(ctMethod);
+
+            methods.add(method);
         }
 
         proxy.setModifiers(Modifier.PUBLIC);

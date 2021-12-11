@@ -5,6 +5,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
+ * RPC编码器
+ *
  * @Author linhao
  * @Date created in 9:50 上午 2021/12/4
  */

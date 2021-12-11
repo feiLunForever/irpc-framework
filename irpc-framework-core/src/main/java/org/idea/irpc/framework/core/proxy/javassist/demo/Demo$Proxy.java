@@ -1,0 +1,38 @@
+package org.idea.irpc.framework.core.proxy.javassist.demo;
+
+import org.idea.irpc.framework.interfaces.DataService;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.util.List;
+
+/**
+ * @Author linhao
+ * @Date created in 8:26 上午 2021/12/9
+ */
+public class Demo$Proxy implements DataService {
+
+    public static Method[] methods;
+
+    private InvocationHandler invocationHandler;
+
+    public Demo$Proxy(InvocationHandler invocationHandlers) {
+        this.invocationHandler = invocationHandlers;
+    }
+
+    @Override
+    public String sendData(String body) throws Throwable {
+        Object[] objectArray = new Object[]{};
+        Object object = this.invocationHandler.invoke(this, methods[1], objectArray);
+        return (String) object;
+    }
+
+    @Override
+    public List<String> getList() throws Throwable {
+        Object[] objectArray = new Object[]{};
+        Object object = this.invocationHandler.invoke(this, methods[1], objectArray);
+        return (List<String>) object;
+    }
+
+
+}

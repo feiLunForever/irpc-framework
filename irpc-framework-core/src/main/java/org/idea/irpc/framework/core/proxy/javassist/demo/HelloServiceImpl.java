@@ -1,4 +1,4 @@
-package org.idea.irpc.framework.core.proxy.javassist;
+package org.idea.irpc.framework.core.proxy.javassist.demo;
 
 /**
  * @Author linhao

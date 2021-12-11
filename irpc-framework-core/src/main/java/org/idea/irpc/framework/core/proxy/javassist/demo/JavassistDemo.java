@@ -1,4 +1,4 @@
-package org.idea.irpc.framework.core.proxy.javassist;
+package org.idea.irpc.framework.core.proxy.javassist.demo;
 
 import javassist.*;
 
@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class JavassistDemo {
 
-    public static final String DEMO_CLASS = "org.idea.irpc.framework.core.proxy.javassist.Demo";
+    public static final String DEMO_CLASS = "org.idea.irpc.framework.core.proxy.javassist.demo.Demo";
 
     /**
      * 在执行方法的前后插入相应的子节码内容，然后重新构建新的实例
@@ -100,7 +100,7 @@ public class JavassistDemo {
             System.out.println(declaredMethod.getName());
             System.out.println(declaredMethod.getParameterTypes());
         }
-        Method addDemoMethod1 = result.getClass().getDeclaredMethod("addDemo", org.idea.irpc.framework.core.proxy.javassist.Demo.class);
+        Method addDemoMethod1 = result.getClass().getDeclaredMethod("addDemo", Demo.class);
         addDemoMethod1.invoke(result, new Demo());
         System.out.println(cls.getName());
         Method getDemoListMethod2 = result.getClass().getDeclaredMethod("getDemoList", null);
