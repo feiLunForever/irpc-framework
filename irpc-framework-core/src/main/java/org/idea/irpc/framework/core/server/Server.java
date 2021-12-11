@@ -9,6 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
+import org.idea.irpc.framework.core.common.config.ServerConfig;
 
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
 
@@ -22,7 +23,17 @@ public class Server {
 
     private static EventLoopGroup workerGroup = null;
 
-    public static void main(String[] args) throws InterruptedException {
+    private ServerConfig serverConfig;
+
+    public ServerConfig getServerConfig() {
+        return serverConfig;
+    }
+
+    public void setServerConfig(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
+    }
+
+    public void startApplication() throws InterruptedException {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -38,13 +49,32 @@ public class Server {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 System.out.println("初始化provider过程");
-                PROVIDER_CLASS_MAP.put("org.idea.irpc.framework.interfaces.DataService",new DataServiceImpl());
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
-        bootstrap.bind(9090).sync();
-        System.out.println("server is open");
+        bootstrap.bind(serverConfig.getPort()).sync();
+    }
+
+    public void registyService(Object serviceBean){
+        if(serviceBean.getClass().getInterfaces().length==0){
+            throw new RuntimeException("service must had interfaces!");
+        }
+        Class[] classes = serviceBean.getClass().getInterfaces();
+        if(classes.length>1){
+            throw new RuntimeException("service must only had one interfaces!");
+        }
+        Class interfaceClass = classes[0];
+        PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        Server server = new Server();
+        ServerConfig serverConfig = new ServerConfig();
+        serverConfig.setPort(9090);
+        server.setServerConfig(serverConfig);
+        server.registyService(new DataServiceImpl());
+        server.startApplication();
     }
 }

@@ -13,7 +13,12 @@ public interface DataService {
      *
      * @param body
      */
-    String sendData(String body) throws Throwable;
+    String sendData(String body);
 
-    List<String> getList() throws Throwable;
+    /**
+     * 获取数据
+     *
+     * @return
+     */
+    List<String> getList();
 }

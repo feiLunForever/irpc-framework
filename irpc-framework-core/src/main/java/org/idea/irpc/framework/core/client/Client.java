@@ -12,10 +12,11 @@ import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
-import org.idea.irpc.framework.core.proxy.ProxyFactory;
-import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
+import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.interfaces.DataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
 
@@ -25,7 +26,21 @@ import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_Q
  */
 public class Client {
 
-    public static void main(String[] args) throws InterruptedException {
+    private Logger logger = LoggerFactory.getLogger(Client.class);
+
+    public static EventLoopGroup clientGroup = new NioEventLoopGroup();
+
+    private ClientConfig clientConfig;
+
+    public ClientConfig getClientConfig() {
+        return clientConfig;
+    }
+
+    public void setClientConfig(ClientConfig clientConfig) {
+        this.clientConfig = clientConfig;
+    }
+
+    public RpcReference startClientApplication() throws InterruptedException {
         EventLoopGroup clientGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(clientGroup);
@@ -38,49 +53,35 @@ public class Client {
                 ch.pipeline().addLast(new ClientHandler());
             }
         });
-        ChannelFuture channelFuture = bootstrap.connect("localhost", 9090).sync();
-        System.out.println("============ 服务启动 ============");
+        ChannelFuture channelFuture = bootstrap.connect(clientConfig.getServerAddr(), clientConfig.getPort()).sync();
+        logger.info("============ 服务启动 ============");
+        this.startClient(channelFuture);
+        RpcReference rpcReference = new RpcReference(new JDKProxyFactory());
+        return rpcReference;
+    }
+
+
+    public static void main(String[] args) throws Throwable {
         Client client = new Client();
-        client.startClient(channelFuture);
-        //模拟数据发送
-        client.startSend();
-        Thread.yield();
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.setPort(9090);
+        clientConfig.setServerAddr("localhost");
+        client.setClientConfig(clientConfig);
+        RpcReference rpcReference = client.startClientApplication();
+        DataService dataService = rpcReference.get(DataService.class);
+        for(int i=0;i<100;i++){
+            String result = dataService.sendData("test");
+            System.out.println(result);
+        }
     }
 
-
-    public void startSend() {
-        Thread sendDataJob = new Thread(new SendDataJob());
-        sendDataJob.start();
-    }
-
-    public void startClient(ChannelFuture channelFuture) {
+    /**
+     * 开启发送线程
+     * @param channelFuture
+     */
+    private void startClient(ChannelFuture channelFuture) {
         Thread asyncSendJob = new Thread(new AsyncSendJob(channelFuture));
         asyncSendJob.start();
-    }
-
-    class SendDataJob implements Runnable {
-
-        @Override
-        public void run() {
-//            while (true) {
-            long beginTime = System.currentTimeMillis();
-            for (int i = 0; i < 2500000; i++) {
-                try {
-//                    Thread.sleep(1000);
-//                    调用器
-//                    ProxyFactory proxyFactory = new JDKProxyFactory();
-                    ProxyFactory proxyFactory = new JavassistProxyFactory();
-                    DataService resp = proxyFactory.getProxy(DataService.class);
-                    resp.getList();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-//            }
-            }
-            System.out.println("执行耗时："+(System.currentTimeMillis()-beginTime));
-        }
     }
 
     class AsyncSendJob implements Runnable {
@@ -95,6 +96,7 @@ public class Client {
         public void run() {
             while (true) {
                 try {
+                    //阻塞模式
                     RpcInvocation data = SEND_QUEUE.take();
                     String json = JSON.toJSONString(data);
                     RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
