@@ -1,5 +1,7 @@
 package org.idea.irpc.framework.core.registy.zookeeper;
 
+import org.apache.zookeeper.Watcher;
+
 import java.util.List;
 
 /**
@@ -139,5 +141,13 @@ public abstract class AbstractZookeeperClient {
      * @return
      */
     public abstract boolean existNode(String address);
+
+
+    /**
+     * 监听path路径下某个节点的数据变化
+     *
+     * @param path
+     */
+    public abstract void watchNodeData(String path, Watcher watcher);
 
 }

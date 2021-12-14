@@ -1,5 +1,7 @@
 package org.idea.irpc.framework.core.registy;
 
+import org.idea.irpc.framework.core.registy.zookeeper.ProviderNodeInfo;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,4 +65,16 @@ public class URL {
         return new String((url.getApplicationName() + ";" + url.getServiceName() + ";" + host + ";" + System.currentTimeMillis()).getBytes(), StandardCharsets.UTF_8);
     }
 
+
+    public static ProviderNodeInfo buildURLFromUrlStr(String providerNodeStr){
+        String[] items = providerNodeStr.split("/");
+        ProviderNodeInfo providerNodeInfo = new ProviderNodeInfo();
+        providerNodeInfo.setServiceName(items[2]);
+        providerNodeInfo.setAddress(items[4]);
+        return providerNodeInfo;
+    }
+
+    public static void main(String[] args) {
+        buildURLFromUrlStr("/irpc/org.idea.irpc.framework.interfaces.DataService/provider/192.168.43.227:9092");
+    }
 }

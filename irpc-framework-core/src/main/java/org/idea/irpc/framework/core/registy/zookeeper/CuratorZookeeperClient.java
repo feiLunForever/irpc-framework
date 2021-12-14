@@ -6,10 +6,15 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
+import org.idea.irpc.framework.core.registy.URL;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.apache.zookeeper.Watcher.Event.EventType.NodeDeleted;
 
 /**
  * @Author linhao
@@ -160,5 +165,31 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public void watchNodeData(String path, Watcher watcher) {
+        try {
+            client.getData().usingWatcher(watcher).forPath(path);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        AbstractZookeeperClient abstractZookeeperClient = new CuratorZookeeperClient("localhost:2181");
+        abstractZookeeperClient.watchNodeData("/irpc/org.idea.irpc.framework.interfaces.DataService/provider/192.168.43.227:9092",
+                new Watcher() {
+                    @Override
+                    public void process(WatchedEvent watchedEvent) {
+                        if(NodeDeleted.equals(watchedEvent.getType())){
+                            ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(watchedEvent.getPath());
+                            System.out.println(providerNodeInfo);
+                        }
+                    }
+                });
+        while (true){
+
+        }
     }
 }
