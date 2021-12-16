@@ -1,10 +1,18 @@
 package org.idea.irpc.framework.core.registy.zookeeper;
 
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.idea.irpc.framework.core.client.Client;
+import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
+import org.idea.irpc.framework.core.common.event.IRpcRegistryEvent;
+import org.idea.irpc.framework.core.common.event.IRpcRemoveEvent;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.interfaces.DataService;
 
 import java.util.List;
+
+import static org.apache.zookeeper.Watcher.Event.EventType.*;
 
 /**
  * @Author linhao
@@ -45,6 +53,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         if (!zkClient.existNode(getProviderPath(url))) {
             zkClient.createTemporaryData(getProviderPath(url), urlStr);
         } else {
+            zkClient.deleteNode(getProviderPath(url));
             zkClient.createTemporaryData(getProviderPath(url), urlStr);
         }
         super.register(url);
@@ -70,11 +79,46 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         }
         String urlStr = URL.buildConsumerUrlStr(url);
         if (!zkClient.existNode(getConsumerPath(url))) {
-            zkClient.createTemporaryData(getConsumerPath(url), urlStr);
+            zkClient.createTemporarySeqData(getConsumerPath(url), urlStr);
         } else {
-            zkClient.createTemporaryData(getConsumerPath(url), urlStr);
+            zkClient.deleteNode(getConsumerPath(url));
+            zkClient.createTemporarySeqData(getConsumerPath(url), urlStr);
         }
         super.subscribe(url);
+    }
+
+    @Override
+    public void doAfterSubscribe(URL url) {
+        String nodePath = ROOT + "/" + url.getServiceName() + "/provider/"+url.getParameters().get("providerUrl");
+        zkClient.watchNodeData(nodePath, new Watcher() {
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                String providerUrlStr = watchedEvent.getPath();
+                ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(providerUrlStr);
+                if(NodeDeleted.equals(watchedEvent.getType())){
+                    IRpcListenerLoader.sendEvent(new IRpcRemoveEvent(providerNodeInfo));
+                }
+            }
+        });
+        //监听是否有新的服务注册
+        String newServerNodePath = ROOT + "/" + url.getServiceName() + "/provider";
+        watchChildNodeData(newServerNodePath);
+    }
+
+    public void watchChildNodeData(String newServerNodePath){
+        zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                if(NodeChildrenChanged.equals(watchedEvent.getType())){
+                    System.out.println("childData is :" + watchedEvent);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void doBeforeSubscribe(URL url) {
+
     }
 
     @Override

@@ -11,9 +11,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.idea.irpc.framework.core.common.*;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
+import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
-import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
@@ -21,10 +21,9 @@ import org.idea.irpc.framework.interfaces.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Array;
-import java.net.InetSocketAddress;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 
@@ -42,7 +41,13 @@ public class Client {
 
     private AbstractRegister abstractRegister;
 
-    private static Bootstrap bootstrap = new Bootstrap();
+    private IRpcListenerLoader iRpcListenerLoader;
+
+    private Bootstrap bootstrap = new Bootstrap();
+
+    public Bootstrap getBootstrap() {
+        return bootstrap;
+    }
 
     public ClientConfig getClientConfig() {
         return clientConfig;
@@ -65,6 +70,8 @@ public class Client {
                 ch.pipeline().addLast(new ClientHandler());
             }
         });
+        iRpcListenerLoader = new IRpcListenerLoader();
+        iRpcListenerLoader.init();
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         RpcReference rpcReference = new RpcReference(new JDKProxyFactory());
         return rpcReference;
@@ -92,23 +99,17 @@ public class Client {
     public void doConnectServer() {
         for (String providerServiceName : SUBSCRIBE_SERVICE_LIST) {
             List<String> providerIps = abstractRegister.getProviderIps(providerServiceName);
-            List<ChannelFutureWrapper> channelFutures = new ArrayList<>();
             for (String providerIp : providerIps) {
-                String[] providerAddress = providerIp.split(":");
-                String ip = providerAddress[0];
-                Integer port = Integer.parseInt(providerAddress[1]);
                 try {
-                    ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
-                    ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
-                    channelFutureWrapper.setChannelFuture(channelFuture);
-                    channelFutureWrapper.setHost(ip);
-                    channelFutureWrapper.setPort(port);
-                    channelFutures.add(channelFutureWrapper);
+                    ConnectionHandler.connect(providerServiceName, providerIp);
                 } catch (InterruptedException e) {
                     logger.error("[doConnectServer] connect fail ", e);
                 }
+                URL url = new URL();
+                url.setServiceName(providerServiceName);
+                url.addParameter("providerUrl", providerIp);
+                abstractRegister.doAfterSubscribe(url);
             }
-            CONNECT_MAP.put(providerServiceName, channelFutures);
         }
     }
 
@@ -136,10 +137,9 @@ public class Client {
                     RpcInvocation data = SEND_QUEUE.take();
                     String json = JSON.toJSONString(data);
                     RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
-                    List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(data.getTargetServiceName());
-                    ChannelFuture channelFuture = channelFutureWrappers.get(new Random().nextInt(channelFutureWrappers.size())).getChannelFuture();
+                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
                     channelFuture.channel().writeAndFlush(rpcProtocol);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -152,6 +152,7 @@ public class Client {
         RpcReference rpcReference = client.initClientApplication();
         DataService dataService = rpcReference.get(DataService.class);
         client.doSubscribeService(DataService.class);
+        ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
         for (int i = 0; i < 100; i++) {

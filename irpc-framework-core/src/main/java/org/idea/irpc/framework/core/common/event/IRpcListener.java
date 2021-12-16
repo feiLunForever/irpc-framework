@@ -6,6 +6,6 @@ package org.idea.irpc.framework.core.common.event;
  */
 public interface IRpcListener<T> {
 
-    void callBack(T t);
+    void callBack(Object t);
 
 }

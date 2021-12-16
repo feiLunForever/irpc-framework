@@ -176,12 +176,22 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
         }
     }
 
+    @Override
+    public void watchChildNodeData(String path, Watcher watcher) {
+        try {
+            client.getChildren().usingWatcher(watcher).forPath(path);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
         AbstractZookeeperClient abstractZookeeperClient = new CuratorZookeeperClient("localhost:2181");
-        abstractZookeeperClient.watchNodeData("/irpc/org.idea.irpc.framework.interfaces.DataService/provider/192.168.43.227:9092",
+        abstractZookeeperClient.watchNodeData("/irpc/org.idea.irpc.framework.interfaces.DataService/provider/10.1.21.11:9092",
                 new Watcher() {
                     @Override
                     public void process(WatchedEvent watchedEvent) {
+                        System.out.println(watchedEvent.getType());
                         if(NodeDeleted.equals(watchedEvent.getType())){
                             ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(watchedEvent.getPath());
                             System.out.println(providerNodeInfo);

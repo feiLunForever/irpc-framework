@@ -150,4 +150,12 @@ public abstract class AbstractZookeeperClient {
      */
     public abstract void watchNodeData(String path, Watcher watcher);
 
+    /**
+     * 监听子节点下的数据变化
+     *
+     * @param path
+     * @param watcher
+     */
+    public abstract void watchChildNodeData(String path, Watcher watcher);
+
 }

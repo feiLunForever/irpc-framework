@@ -71,4 +71,7 @@ public class CommonUtils {
         return false;
     }
 
+    public static boolean isNotEmptyList(List list) {
+        return !isEmptyList(list);
+    }
 }

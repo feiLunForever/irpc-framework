@@ -6,9 +6,7 @@ import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.registy.URL;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +25,7 @@ public class CommonClientCache {
     //provider名称 --> 该服务有哪些集群URL
     public static List<String> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
     public static Map<String, List<URL>> URL_MAP = new ConcurrentHashMap<>();
+    public static Set<String> SERVER_ADDRESS = new HashSet<>();
     public static Map<String, List<ChannelFutureWrapper>> CONNECT_MAP = new ConcurrentHashMap<>();
 
 

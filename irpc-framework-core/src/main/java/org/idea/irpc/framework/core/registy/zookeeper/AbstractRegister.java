@@ -33,14 +33,28 @@ public abstract class AbstractRegister implements RegistryService {
     public void subscribe(URL url) {
         providerUrls.add(url);
         SUBSCRIBE_SERVICE_LIST.add(url.getServiceName());
-//        List<URL> urls = URL_MAP.get(url.getServiceName());
-//        if (CommonUtils.isEmptyList(urls)) {
-//            urls = new ArrayList<>();
-//        }
-//        urls.add(url);
-//        URL_MAP.put(url.getServiceName(), urls);
     }
 
+    /**
+     * 留给子类扩展
+     *
+     * @param url
+     */
+    public abstract void doAfterSubscribe(URL url);
+
+    /**
+     * 留给子类扩展
+     *
+     * @param url
+     */
+    public abstract void doBeforeSubscribe(URL url);
+
+    /**
+     * 留给子类扩展
+     *
+     * @param serviceName
+     * @return
+     */
     public abstract List<String> getProviderIps(String serviceName);
 
 
