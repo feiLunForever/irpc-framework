@@ -12,6 +12,7 @@
         <module>irpc-framework-interface</module>
         <module>irpc-framework-provider</module>
         <module>irpc-framework-consumer</module>
+        <module>irpc-framework-jmh</module>
     </modules>
 
     <packaging>pom</packaging>

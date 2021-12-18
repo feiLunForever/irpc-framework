@@ -10,6 +10,16 @@ public class ClientConfig {
 
     private String registerAddr;
 
+    private String proxyType;
+
+    public String getProxyType() {
+        return proxyType;
+    }
+
+    public void setProxyType(String proxyType) {
+        this.proxyType = proxyType;
+    }
+
     public String getRegisterAddr() {
         return registerAddr;
     }

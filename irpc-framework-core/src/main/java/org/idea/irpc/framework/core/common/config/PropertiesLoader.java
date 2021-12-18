@@ -1,10 +1,8 @@
 package org.idea.irpc.framework.core.common.config;
 
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
-import sun.tools.java.ClassPath;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

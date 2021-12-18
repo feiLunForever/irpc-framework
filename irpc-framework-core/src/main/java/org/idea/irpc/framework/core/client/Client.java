@@ -13,6 +13,7 @@ import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
@@ -73,7 +74,12 @@ public class Client {
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
-        RpcReference rpcReference = new RpcReference(new JDKProxyFactory());
+        RpcReference rpcReference;
+        if ("javassist".equals(clientConfig.getProxyType())) {
+            rpcReference = new RpcReference(new JavassistProxyFactory());
+        } else {
+            rpcReference = new RpcReference(new JDKProxyFactory());
+        }
         return rpcReference;
     }
 
@@ -119,7 +125,7 @@ public class Client {
      *
      * @param
      */
-    private void startClient() {
+    public void startClient() {
         Thread asyncSendJob = new Thread(new AsyncSendJob());
         asyncSendJob.start();
     }
