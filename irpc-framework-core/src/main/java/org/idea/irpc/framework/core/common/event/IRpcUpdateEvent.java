@@ -2,13 +2,13 @@ package org.idea.irpc.framework.core.common.event;
 
 /**
  * @Author linhao
- * @Date created in 10:25 上午 2021/12/16
+ * @Date created in 10:33 下午 2021/12/18
  */
-public class IRpcRemoveEvent implements IRpcEvent {
+public class IRpcUpdateEvent implements IRpcEvent {
 
     private Object data;
 
-    public IRpcRemoveEvent(Object data) {
+    public IRpcUpdateEvent(Object data) {
         this.data = data;
     }
 

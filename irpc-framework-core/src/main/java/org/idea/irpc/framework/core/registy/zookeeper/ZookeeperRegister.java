@@ -3,9 +3,8 @@ package org.idea.irpc.framework.core.registy.zookeeper;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.idea.irpc.framework.core.client.Client;
-import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
-import org.idea.irpc.framework.core.common.event.IRpcRegistryEvent;
-import org.idea.irpc.framework.core.common.event.IRpcRemoveEvent;
+import org.idea.irpc.framework.core.common.event.*;
+import org.idea.irpc.framework.core.common.event.data.URLChangeWrapper;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.interfaces.DataService;
@@ -29,7 +28,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
     }
 
     private String getConsumerPath(URL url) {
-        return ROOT + "/" + url.getServiceName() + "/consumer/" + url.getApplicationName() + ":" + url.getParameters().get("host");
+        return ROOT + "/" + url.getServiceName() + "/consumer/" + url.getApplicationName() + ":" + url.getParameters().get("host")+":";
     }
 
     public ZookeeperRegister(String address) {
@@ -89,17 +88,17 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     @Override
     public void doAfterSubscribe(URL url) {
-        String nodePath = ROOT + "/" + url.getServiceName() + "/provider/"+url.getParameters().get("providerUrl");
-        zkClient.watchNodeData(nodePath, new Watcher() {
-            @Override
-            public void process(WatchedEvent watchedEvent) {
-                String providerUrlStr = watchedEvent.getPath();
-                ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(providerUrlStr);
-                if(NodeDeleted.equals(watchedEvent.getType())){
-                    IRpcListenerLoader.sendEvent(new IRpcRemoveEvent(providerNodeInfo));
-                }
-            }
-        });
+//        String nodePath = ROOT + "/" + url.getServiceName() + "/provider/"+url.getParameters().get("providerUrl");
+//        zkClient.watchNodeData(nodePath, new Watcher() {
+//            @Override
+//            public void process(WatchedEvent watchedEvent) {
+//                String providerUrlStr = watchedEvent.getPath();
+//                ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(providerUrlStr);
+//                if(NodeDeleted.equals(watchedEvent.getType())){
+//                    IRpcListenerLoader.sendEvent(new IRpcRemoveEvent(providerNodeInfo));
+//                }
+//            }
+//        });
         //监听是否有新的服务注册
         String newServerNodePath = ROOT + "/" + url.getServiceName() + "/provider";
         watchChildNodeData(newServerNodePath);
@@ -109,9 +108,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                if(NodeChildrenChanged.equals(watchedEvent.getType())){
-                    System.out.println("childData is :" + watchedEvent);
-                }
+                System.out.println(watchedEvent);
+                String path = watchedEvent.getPath();
+                List<String> childrenDataList = zkClient.getChildrenData(path);
+                URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
+                urlChangeWrapper.setProviderUrl(childrenDataList);
+                urlChangeWrapper.setServiceName(path.split("/")[2]);
+                IRpcEvent iRpcEvent = new IRpcUpdateEvent(urlChangeWrapper);
+                IRpcListenerLoader.sendEvent(iRpcEvent);
+                //收到回调之后在注册一次监听，这样能保证一直都收到消息
+                watchChildNodeData(path);
             }
         });
     }

@@ -17,7 +17,11 @@ import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
+import static org.idea.irpc.framework.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 
 /**
  * @Author linhao
@@ -62,6 +66,7 @@ public class Server {
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
+        this.batchExportUrl();
         bootstrap.bind(serverConfig.getServerPort()).sync();
     }
 
@@ -94,7 +99,24 @@ public class Server {
         url.setApplicationName(serverConfig.getApplicationName());
         url.addParameter("host", CommonUtils.getIpAddress());
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
-        registryService.register(url);
+        PROVIDER_URL_SET.add(url);
+    }
+
+    public void batchExportUrl(){
+        Thread task = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                for (URL url : PROVIDER_URL_SET) {
+                    registryService.register(url);
+                }
+            }
+        });
+        task.start();
     }
 
 

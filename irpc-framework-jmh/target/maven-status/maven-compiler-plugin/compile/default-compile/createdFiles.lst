@@ -1,0 +1,14 @@
+META-INF/CompilerHints
+org/idea/irpc/framework/jmh/Applicaiton.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B3.java
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B3.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_testJdkProxy_jmhTest.class
+org/idea/irpc/framework/jmh/proxy/ProxyCompareTest.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B2.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_testJdkProxy_jmhTest.java
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B1.java
+META-INF/BenchmarkList
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B1.class
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType.java
+org/idea/irpc/framework/jmh/proxy/generated/ProxyCompareTest_jmhType_B2.java

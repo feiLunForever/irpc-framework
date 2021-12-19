@@ -1,0 +1,1 @@
+JMH S 50 org.idea.irpc.framework.jmh.proxy.ProxyCompareTest S 81 org.idea.irpc.framework.jmh.proxy.generated.ProxyCompareTest_testJdkProxy_jmhTest S 12 testJdkProxy S 10 Throughput E A 1 1 1 E E E E E E E E E E E E E E E E E 

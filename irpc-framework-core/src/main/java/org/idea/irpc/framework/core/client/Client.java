@@ -111,11 +111,10 @@ public class Client {
                 } catch (InterruptedException e) {
                     logger.error("[doConnectServer] connect fail ", e);
                 }
-                URL url = new URL();
-                url.setServiceName(providerServiceName);
-                url.addParameter("providerUrl", providerIp);
-                abstractRegister.doAfterSubscribe(url);
             }
+            URL url = new URL();
+            url.setServiceName(providerServiceName);
+            abstractRegister.doAfterSubscribe(url);
         }
     }
 
@@ -162,8 +161,13 @@ public class Client {
         client.doConnectServer();
         client.startClient();
         for (int i = 0; i < 100; i++) {
-            String result = dataService.sendData("test");
-            System.out.println(result);
+            try {
+                String result = dataService.sendData("test");
+                System.out.println(result);
+                Thread.sleep(1000);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 }

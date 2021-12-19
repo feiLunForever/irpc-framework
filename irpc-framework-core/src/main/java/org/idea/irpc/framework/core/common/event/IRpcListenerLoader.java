@@ -1,13 +1,14 @@
 package org.idea.irpc.framework.core.common.event;
 
-import org.idea.irpc.framework.core.common.event.listener.ServiceRegistryListener;
-import org.idea.irpc.framework.core.common.event.listener.ServiceRemoveListener;
+import org.idea.irpc.framework.core.common.event.listener.ServiceUpdateListener;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @Author linhao
@@ -17,13 +18,14 @@ public class IRpcListenerLoader {
 
     private static List<IRpcListener> iRpcListenerList = new ArrayList<>();
 
+    private static ExecutorService eventThreadPool = Executors.newFixedThreadPool(2);
+
     public static void registerListener(IRpcListener iRpcListener) {
         iRpcListenerList.add(iRpcListener);
     }
 
     public void init() {
-        registerListener(new ServiceRemoveListener());
-        registerListener(new ServiceRegistryListener());
+        registerListener(new ServiceUpdateListener());
     }
 
     /**
@@ -48,15 +50,18 @@ public class IRpcListenerLoader {
         for (IRpcListener<?> iRpcListener : iRpcListenerList) {
             Class<?> type = getInterfaceT(iRpcListener);
             if(type.equals(iRpcEvent.getClass())){
-                iRpcListener.callBack(iRpcEvent.getData());
+                eventThreadPool.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            iRpcListener.callBack(iRpcEvent.getData());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         }
     }
 
-
-    public static void main(String[] args) {
-        IRpcListenerLoader iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
-        IRpcListenerLoader.sendEvent(new IRpcRegistryEvent("test"));
-    }
 }

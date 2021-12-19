@@ -67,6 +67,24 @@ public class ConnectionHandler {
         CONNECT_MAP.put(providerServiceName, channelFutureWrappers);
     }
 
+    /**
+     * 构建ChannelFuture
+     * @param ip
+     * @param port
+     * @return
+     * @throws InterruptedException
+     */
+    public static ChannelFuture createChannelFuture(String ip,Integer port) throws InterruptedException {
+        ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
+        return channelFuture;
+    }
+
+    /**
+     * 断开连接
+     *
+     * @param providerServiceName
+     * @param providerIp
+     */
     public static void disConnect(String providerServiceName, String providerIp) {
         SERVER_ADDRESS.remove(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
@@ -75,7 +93,6 @@ public class ConnectionHandler {
             while (iterator.hasNext()) {
                 ChannelFutureWrapper channelFutureWrapper = iterator.next();
                 if (providerIp.equals(channelFutureWrapper.getHost() + ":" + channelFutureWrapper.getPort())) {
-                    System.out.println("删除对应服务：providerServiceName is:" + providerServiceName + "ip is:" + providerIp);
                     iterator.remove();
                 }
             }
