@@ -1,14 +1,12 @@
 package org.idea.irpc.framework.core.registy.zookeeper;
 
-import io.netty.util.internal.ConcurrentSet;
-import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static org.idea.irpc.framework.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 
 /**
  * @Author linhao
@@ -16,22 +14,19 @@ import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SUBSCR
  */
 public abstract class AbstractRegister implements RegistryService {
 
-    private Set<URL> providerUrls = new ConcurrentSet<>();
-
 
     @Override
     public void register(URL url) {
-        providerUrls.add(url);
+        PROVIDER_URL_SET.add(url);
     }
 
     @Override
     public void unRegister(URL url) {
-        providerUrls.remove(url);
+        PROVIDER_URL_SET.remove(url);
     }
 
     @Override
     public void subscribe(URL url) {
-        providerUrls.add(url);
         SUBSCRIBE_SERVICE_LIST.add(url.getServiceName());
     }
 
@@ -60,6 +55,6 @@ public abstract class AbstractRegister implements RegistryService {
 
     @Override
     public void doUnSubscribe(URL url) {
-
+        SUBSCRIBE_SERVICE_LIST.remove(url.getServiceName());
     }
 }

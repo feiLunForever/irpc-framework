@@ -23,12 +23,12 @@ public abstract class AbstractZookeeperClient {
 
     public AbstractZookeeperClient(String zkAddress, Integer baseSleepTimes, Integer maxRetryTimes) {
         this.zkAddress = zkAddress;
-        if(baseSleepTimes == null){
+        if (baseSleepTimes == null) {
             this.baseSleepTimes = 1000;
         } else {
             this.baseSleepTimes = baseSleepTimes;
         }
-        if(maxRetryTimes == null){
+        if (maxRetryTimes == null) {
             this.maxRetryTimes = 3;
         } else {
             this.maxRetryTimes = maxRetryTimes;
@@ -109,7 +109,7 @@ public abstract class AbstractZookeeperClient {
      * @param address
      * @param data
      */
-    public abstract void setTemporaryData(String address,String data);
+    public abstract void setTemporaryData(String address, String data);
 
     /**
      * 断开zk的客户端链接
