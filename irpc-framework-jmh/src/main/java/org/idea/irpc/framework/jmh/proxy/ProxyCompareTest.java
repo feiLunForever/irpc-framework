@@ -44,6 +44,19 @@ public class ProxyCompareTest {
         return content;
     }
 
+    /**
+     * 修改irpc.properties配置文件中的代理模式再重启客户端进行测试
+     *
+     * @return
+     * @throws Throwable
+     */
+//    @Benchmark
+//    public String testJavassistProxy() throws Throwable {
+//        String content = dataService.sendData("test");
+//        return content;
+//    }
+
+
     public static void main(String[] args) throws RunnerException {
         //配置进行2轮热数 测试2轮 1个线程
         //预热的原因 是JVM在代码执行多次会有优化
