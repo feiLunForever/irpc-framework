@@ -14,6 +14,14 @@ public class ChannelFutureWrapper {
 
     private Integer port;
 
+    public ChannelFutureWrapper(String host, Integer port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    public ChannelFutureWrapper() {
+    }
+
     public ChannelFuture getChannelFuture() {
         return channelFuture;
     }
@@ -36,5 +44,14 @@ public class ChannelFutureWrapper {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    @Override
+    public String toString() {
+        return "ChannelFutureWrapper{" +
+                "channelFuture=" + channelFuture +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                '}';
     }
 }

@@ -5,6 +5,9 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.router.IRouter;
+import org.idea.irpc.framework.core.router.RotateRouterImpl;
+import org.idea.irpc.framework.core.router.Selector;
 
 import javax.xml.stream.events.DTD;
 import java.net.UnknownServiceException;
@@ -13,8 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SERVER_ADDRESS;
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 
 /**
  * 职责： 当注册中心的节点新增或者移除或者权重变化的时候，这个类主要负责对内存中的url做变更
@@ -29,6 +31,7 @@ public class ConnectionHandler {
      * 专门用于负责和服务端构建连接通信
      */
     private static Bootstrap bootstrap;
+
 
     public static void setBootstrap(Bootstrap bootstrap) {
         ConnectionHandler.bootstrap = bootstrap;
@@ -110,7 +113,11 @@ public class ConnectionHandler {
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
-        ChannelFuture channelFuture = channelFutureWrappers.get(new Random().nextInt(channelFutureWrappers.size())).getChannelFuture();
+        Selector selector = new Selector();
+        selector.setSelectStrategy("rotateRouter");
+        selector.setProviderServiceName(providerServiceName);
+        //todo 随机获取
+        ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }
 

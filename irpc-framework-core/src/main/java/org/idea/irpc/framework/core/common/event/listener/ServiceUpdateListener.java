@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.IROUTER;
 
 /**
  * @Author linhao
@@ -68,6 +69,7 @@ public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
             finalChannelFutureWrappers.addAll(newChannelFutureWrapper);
             //最终更新服务在这里
             CONNECT_MAP.put(urlChangeWrapper.getServiceName(),finalChannelFutureWrappers);
+            IROUTER.refreshRouterFlag(true);
         }
     }
 }
