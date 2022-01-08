@@ -1,5 +1,6 @@
 package org.idea.irpc.framework.core.common.config;
 
+import io.netty.util.internal.StringUtil;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 
 import java.io.FileInputStream;
@@ -24,7 +25,7 @@ public class PropertiesLoader {
 
     //todo 如果这里直接使用static修饰是否可以？
     public static void loadConfiguration() throws IOException {
-        if(properties!=null){
+        if (properties != null) {
             return;
         }
         properties = new Properties();
@@ -50,7 +51,20 @@ public class PropertiesLoader {
             String value = properties.getProperty(key);
             propertiesMap.put(key, value);
         }
-        return String.valueOf(propertiesMap.get(key));
+        return propertiesMap.get(key) == null ? null : String.valueOf(propertiesMap.get(key));
+    }
+
+    public static String getPropertiesNotBlank(String key) {
+        String val = getPropertiesStr(key);
+        if (val == null || val.equals("")) {
+            throw new IllegalArgumentException(key + " 配置为空异常");
+        }
+        return val;
+    }
+
+    public static String getPropertiesStrDefault(String key, String defaultVal) {
+        String val = getPropertiesStr(key);
+        return val == null || val.equals("") ? defaultVal : val;
     }
 
     /**

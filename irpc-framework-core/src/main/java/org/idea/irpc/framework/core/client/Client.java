@@ -18,15 +18,19 @@ import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.idea.irpc.framework.core.router.RandomRouterImpl;
+import org.idea.irpc.framework.core.router.RotateRouterImpl;
 import org.idea.irpc.framework.interfaces.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
+import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
 
 /**
  * @Author linhao
@@ -75,7 +79,7 @@ public class Client {
         iRpcListenerLoader.init();
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         RpcReference rpcReference;
-        if ("javassist".equals(clientConfig.getProxyType())) {
+        if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
         } else {
             rpcReference = new RpcReference(new JDKProxyFactory());
@@ -96,6 +100,8 @@ public class Client {
         url.setApplicationName(clientConfig.getApplicationName());
         url.setServiceName(serviceBean.getName());
         url.addParameter("host", CommonUtils.getIpAddress());
+        Map<String, String> result = abstractRegister.getServiceWeightMap(serviceBean.getName());
+        URL_MAP.put(serviceBean.getName(),result);
         abstractRegister.subscribe(url);
     }
 
@@ -103,17 +109,17 @@ public class Client {
      * 开始和各个provider建立连接
      */
     public void doConnectServer() {
-        for (String providerServiceName : SUBSCRIBE_SERVICE_LIST) {
-            List<String> providerIps = abstractRegister.getProviderIps(providerServiceName);
+        for (URL providerURL : SUBSCRIBE_SERVICE_LIST) {
+            List<String> providerIps = abstractRegister.getProviderIps(providerURL.getServiceName());
             for (String providerIp : providerIps) {
                 try {
-                    ConnectionHandler.connect(providerServiceName, providerIp);
+                    ConnectionHandler.connect(providerURL.getServiceName(), providerIp);
                 } catch (InterruptedException e) {
                     logger.error("[doConnectServer] connect fail ", e);
                 }
             }
             URL url = new URL();
-            url.setServiceName(providerServiceName);
+            url.setServiceName(providerURL.getServiceName());
             abstractRegister.doAfterSubscribe(url);
         }
     }
@@ -151,10 +157,24 @@ public class Client {
         }
     }
 
+    /**
+     * todo
+     * 后续可以考虑加入spi
+     */
+    private void initClientConfig() {
+        String routerStrategy = clientConfig.getRouterStrategy();
+        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
+            IROUTER = new RandomRouterImpl();
+        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)) {
+            IROUTER = new RotateRouterImpl();
+        }
+    }
+
 
     public static void main(String[] args) throws Throwable {
         Client client = new Client();
         RpcReference rpcReference = client.initClientApplication();
+        client.initClientConfig();
         DataService dataService = rpcReference.get(DataService.class);
         client.doSubscribeService(DataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
@@ -165,7 +185,7 @@ public class Client {
                 String result = dataService.sendData("test");
                 System.out.println(result);
                 Thread.sleep(1000);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

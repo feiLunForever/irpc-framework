@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.router;
 
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
+import org.idea.irpc.framework.core.registy.URL;
 
 /**
  * @Author linhao
@@ -12,9 +13,9 @@ public interface IRouter {
     /**
      * 刷新一个随机选定的flag
      *
-     * @param status
+     * @param selector
      */
-    void refreshRouterFlag(boolean status);
+    void refreshRouterArr(Selector selector);
 
     /**
      * 获取到请求到连接通道
@@ -22,4 +23,11 @@ public interface IRouter {
      * @return
      */
     ChannelFutureWrapper select(Selector selector);
+
+    /**
+     * 更新权重信息
+     *
+     * @param url
+     */
+    void updateWeight(URL url);
 }

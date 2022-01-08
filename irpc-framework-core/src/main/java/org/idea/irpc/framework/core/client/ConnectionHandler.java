@@ -5,6 +5,8 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.registy.URL;
+import org.idea.irpc.framework.core.registy.zookeeper.ProviderNodeInfo;
 import org.idea.irpc.framework.core.router.IRouter;
 import org.idea.irpc.framework.core.router.RotateRouterImpl;
 import org.idea.irpc.framework.core.router.Selector;
@@ -57,10 +59,13 @@ public class ConnectionHandler {
         Integer port = Integer.parseInt(providerAddress[1]);
         //到底这个channelFuture里面是什么
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
+        String providerURLInfo = URL_MAP.get(providerServiceName).get(providerIp);
+        System.out.println(providerURLInfo);
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);
         channelFutureWrapper.setPort(port);
+        channelFutureWrapper.setWeight(Integer.valueOf(providerURLInfo.substring(providerURLInfo.lastIndexOf(";")+1)));
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
@@ -68,6 +73,9 @@ public class ConnectionHandler {
         }
         channelFutureWrappers.add(channelFutureWrapper);
         CONNECT_MAP.put(providerServiceName, channelFutureWrappers);
+        Selector selector = new Selector();
+        selector.setProviderServiceName(providerServiceName);
+        IROUTER.refreshRouterArr(selector);
     }
 
     /**

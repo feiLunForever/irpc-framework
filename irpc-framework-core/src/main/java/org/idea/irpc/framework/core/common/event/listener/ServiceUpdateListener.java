@@ -3,11 +3,10 @@ package org.idea.irpc.framework.core.common.event.listener;
 import io.netty.channel.ChannelFuture;
 import org.idea.irpc.framework.core.client.ConnectionHandler;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
-import org.idea.irpc.framework.core.common.event.IRpcListener;
-import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.event.IRpcUpdateEvent;
 import org.idea.irpc.framework.core.common.event.data.URLChangeWrapper;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.router.Selector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +68,9 @@ public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
             finalChannelFutureWrappers.addAll(newChannelFutureWrapper);
             //最终更新服务在这里
             CONNECT_MAP.put(urlChangeWrapper.getServiceName(),finalChannelFutureWrappers);
-            IROUTER.refreshRouterFlag(true);
+            Selector selector = new Selector();
+            selector.setProviderServiceName(urlChangeWrapper.getServiceName());
+            IROUTER.refreshRouterArr(selector);
         }
     }
 }

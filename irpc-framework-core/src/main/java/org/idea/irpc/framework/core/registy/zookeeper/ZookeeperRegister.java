@@ -2,6 +2,7 @@ package org.idea.irpc.framework.core.registy.zookeeper;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.event.IRpcEvent;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.event.IRpcUpdateEvent;
@@ -10,7 +11,9 @@ import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.interfaces.DataService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author linhao
@@ -41,6 +44,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         return nodeDataList;
     }
 
+    @Override
+    public Map<String, String> getServiceWeightMap(String serviceName) {
+        List<String> nodeDataList = this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+        Map<String,String> result = new HashMap<>();
+        for (String ipAndHost : nodeDataList) {
+            String childData = this.zkClient.getNodeData(ROOT + "/" + serviceName + "/provider/"+ipAndHost);
+            result.put(ipAndHost,childData);
+        }
+        return result;
+    }
 
     @Override
     public void register(URL url) {

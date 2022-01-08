@@ -2,10 +2,11 @@ package org.idea.irpc.framework.core.router;
 
 import org.idea.irpc.framework.core.common.ChannelFutureRefWrapper;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
+import org.idea.irpc.framework.core.registy.URL;
 
 import java.util.List;
 
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 
 /**
  * 轮训策略
@@ -15,26 +16,24 @@ import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CONNEC
  */
 public class RotateRouterImpl implements IRouter{
 
-    private volatile boolean refreshFlag = true;
-
-    private ChannelFutureRefWrapper channelFutureRefWrapper;
 
     @Override
-    public void refreshRouterFlag(boolean status) {
-        this.refreshFlag=status;
+    public void refreshRouterArr(Selector selector) {
+        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(selector.getProviderServiceName());
+        ChannelFutureWrapper[] arr = new ChannelFutureWrapper[channelFutureWrappers.size()];
+        for (int i=0;i<channelFutureWrappers.size();i++) {
+            arr[i]=channelFutureWrappers.get(i);
+        }
+        SERVICE_ROUTER_MAP.put(selector.getProviderServiceName(),arr);
     }
 
     @Override
     public ChannelFutureWrapper select(Selector selector) {
-        if(refreshFlag){
-            List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(selector.getProviderServiceName());
-            ChannelFutureWrapper[] arr = new ChannelFutureWrapper[channelFutureWrappers.size()];
-            for (int i=0;i<channelFutureWrappers.size();i++) {
-                arr[i]=channelFutureWrappers.get(i);
-            }
-            channelFutureRefWrapper = new ChannelFutureRefWrapper(arr);
-            this.refreshFlag=false;
-        }
-        return channelFutureRefWrapper.getChannelFutureWrapper();
+        return CHANNEL_FUTURE_REF_WRAPPER.getChannelFutureWrapper(selector.getProviderServiceName());
+    }
+
+    @Override
+    public void updateWeight(URL url) {
+
     }
 }

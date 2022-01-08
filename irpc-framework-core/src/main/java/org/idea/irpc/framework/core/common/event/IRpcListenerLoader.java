@@ -1,5 +1,7 @@
 package org.idea.irpc.framework.core.common.event;
 
+import org.idea.irpc.framework.core.common.event.listener.IRpcListener;
+import org.idea.irpc.framework.core.common.event.listener.ServiceDestroyListener;
 import org.idea.irpc.framework.core.common.event.listener.ServiceUpdateListener;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 
@@ -26,12 +28,13 @@ public class IRpcListenerLoader {
 
     public void init() {
         registerListener(new ServiceUpdateListener());
+        registerListener(new ServiceDestroyListener());
     }
 
     /**
      * 获取接口上的泛型T
      *
-     * @param o     接口
+     * @param o 接口
      */
     public static Class<?> getInterfaceT(Object o) {
         Type[] types = o.getClass().getGenericInterfaces();
@@ -43,19 +46,41 @@ public class IRpcListenerLoader {
         return null;
     }
 
-    public static void sendEvent(IRpcEvent iRpcEvent) {
-        if(CommonUtils.isEmptyList(iRpcListenerList)){
+    /**
+     * 同步事件处理，可能会堵塞
+     *
+     * @param iRpcEvent
+     */
+    public static void sendSyncEvent(IRpcEvent iRpcEvent) {
+        System.out.println(iRpcListenerList);
+        if (CommonUtils.isEmptyList(iRpcListenerList)) {
             return;
         }
         for (IRpcListener<?> iRpcListener : iRpcListenerList) {
             Class<?> type = getInterfaceT(iRpcListener);
-            if(type.equals(iRpcEvent.getClass())){
+            if (type.equals(iRpcEvent.getClass())) {
+                try {
+                    iRpcListener.callBack(iRpcEvent.getData());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void sendEvent(IRpcEvent iRpcEvent) {
+        if (CommonUtils.isEmptyList(iRpcListenerList)) {
+            return;
+        }
+        for (IRpcListener<?> iRpcListener : iRpcListenerList) {
+            Class<?> type = getInterfaceT(iRpcListener);
+            if (type.equals(iRpcEvent.getClass())) {
                 eventThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             iRpcListener.callBack(iRpcEvent.getData());
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
