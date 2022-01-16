@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.common.event;
 
 import org.idea.irpc.framework.core.common.event.listener.IRpcListener;
+import org.idea.irpc.framework.core.common.event.listener.ProviderNodeDataChangeListener;
 import org.idea.irpc.framework.core.common.event.listener.ServiceDestroyListener;
 import org.idea.irpc.framework.core.common.event.listener.ServiceUpdateListener;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
@@ -29,6 +30,7 @@ public class IRpcListenerLoader {
     public void init() {
         registerListener(new ServiceUpdateListener());
         registerListener(new ServiceDestroyListener());
+        registerListener(new ProviderNodeDataChangeListener());
     }
 
     /**

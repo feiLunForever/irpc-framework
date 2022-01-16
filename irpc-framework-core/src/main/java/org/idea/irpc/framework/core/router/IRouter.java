@@ -11,7 +11,7 @@ public interface IRouter {
 
 
     /**
-     * 刷新一个随机选定的flag
+     * 刷新路由数组
      *
      * @param selector
      */

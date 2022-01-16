@@ -72,6 +72,7 @@ public class ConnectionHandler {
             channelFutureWrappers = new ArrayList<>();
         }
         channelFutureWrappers.add(channelFutureWrapper);
+        //例如com.sise.test.UserService会被放入到一个Map集合中，key是服务的名字，value是对应的channel通道的List集合
         CONNECT_MAP.put(providerServiceName, channelFutureWrappers);
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);

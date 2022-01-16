@@ -8,7 +8,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.idea.irpc.framework.core.common.*;
+import org.idea.irpc.framework.core.common.RpcDecoder;
+import org.idea.irpc.framework.core.common.RpcEncoder;
+import org.idea.irpc.framework.core.common.RpcInvocation;
+import org.idea.irpc.framework.core.common.RpcProtocol;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
@@ -24,10 +27,9 @@ import org.idea.irpc.framework.interfaces.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
@@ -119,7 +121,8 @@ public class Client {
                 }
             }
             URL url = new URL();
-            url.setServiceName(providerURL.getServiceName());
+            url.addParameter("servicePath",providerURL.getServiceName()+"/provider");
+            url.addParameter("providerIps", JSON.toJSONString(providerIps));
             abstractRegister.doAfterSubscribe(url);
         }
     }
@@ -162,6 +165,7 @@ public class Client {
      * 后续可以考虑加入spi
      */
     private void initClientConfig() {
+        //初始化路由策略
         String routerStrategy = clientConfig.getRouterStrategy();
         if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
             IROUTER = new RandomRouterImpl();

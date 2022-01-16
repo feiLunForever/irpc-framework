@@ -23,6 +23,7 @@ public class RandomRouterImpl implements IRouter {
         //获取服务提供者的数目
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(selector.getProviderServiceName());
         ChannelFutureWrapper[] arr = new ChannelFutureWrapper[channelFutureWrappers.size()];
+        //提前生成调用先后顺序的随机数组
         int[] result = createRandomIndex(arr.length);
         //生成对应服务集群的每台机器的调用顺序
         for (int i = 0; i < result.length; i++) {
@@ -33,7 +34,7 @@ public class RandomRouterImpl implements IRouter {
 
     @Override
     public ChannelFutureWrapper select(Selector selector) {
-        return CHANNEL_FUTURE_REF_WRAPPER.getChannelFutureWrapper(selector.getProviderServiceName());
+        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector.getProviderServiceName());
     }
 
     @Override
@@ -44,7 +45,7 @@ public class RandomRouterImpl implements IRouter {
         Integer[] finalArr = createRandomArr(weightArr);
         ChannelFutureWrapper[] finalChannelFutureWrappers = new ChannelFutureWrapper[finalArr.length];
         for (int j = 0; j < finalArr.length; j++) {
-            finalChannelFutureWrappers[j] = channelFutureWrappers.get(j);
+            finalChannelFutureWrappers[j] = channelFutureWrappers.get(finalArr[j]);
         }
         SERVICE_ROUTER_MAP.put(url.getServiceName(),finalChannelFutureWrappers);
     }

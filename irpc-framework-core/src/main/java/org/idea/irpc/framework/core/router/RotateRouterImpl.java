@@ -1,6 +1,5 @@
 package org.idea.irpc.framework.core.router;
 
-import org.idea.irpc.framework.core.common.ChannelFutureRefWrapper;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
 import org.idea.irpc.framework.core.registy.URL;
 
@@ -29,7 +28,7 @@ public class RotateRouterImpl implements IRouter{
 
     @Override
     public ChannelFutureWrapper select(Selector selector) {
-        return CHANNEL_FUTURE_REF_WRAPPER.getChannelFutureWrapper(selector.getProviderServiceName());
+        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector.getProviderServiceName());
     }
 
     @Override
