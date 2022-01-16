@@ -28,6 +28,7 @@ public class ApplicationShutdownHook {
             public void run() {
                 LOGGER.info("[registryShutdownHook] ==== ");
                 IRpcListenerLoader.sendSyncEvent(new IRpcDestroyEvent("destroy"));
+                System.out.println("destory");
             }
         }));
     }

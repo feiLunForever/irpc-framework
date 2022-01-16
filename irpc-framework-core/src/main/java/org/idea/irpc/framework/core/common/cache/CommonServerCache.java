@@ -1,5 +1,6 @@
 package org.idea.irpc.framework.core.common.cache;
 
+import io.netty.util.internal.ConcurrentSet;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author linhao
@@ -14,8 +16,8 @@ import java.util.Set;
  */
 public class CommonServerCache {
 
-    public static final Map<String,Object> PROVIDER_CLASS_MAP = new HashMap<>();
-    public static final Set<URL> PROVIDER_URL_SET = new HashSet<>();
+    public static final Map<String,Object> PROVIDER_CLASS_MAP = new ConcurrentHashMap<>();
+    public static final Set<URL> PROVIDER_URL_SET = new ConcurrentSet<>();
     public static RegistryService REGISTRY_SERVICE;
 
 }
