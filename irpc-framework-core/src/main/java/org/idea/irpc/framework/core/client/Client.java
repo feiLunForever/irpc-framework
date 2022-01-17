@@ -23,6 +23,11 @@ import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.idea.irpc.framework.core.router.RandomRouterImpl;
 import org.idea.irpc.framework.core.router.RotateRouterImpl;
+import org.idea.irpc.framework.core.serialize.SerializeFactory;
+import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
+import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
+import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
+import org.idea.irpc.framework.core.serialize.kryo.KryoSerializeFactory;
 import org.idea.irpc.framework.interfaces.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +106,7 @@ public class Client {
         url.setServiceName(serviceBean.getName());
         url.addParameter("host", CommonUtils.getIpAddress());
         Map<String, String> result = abstractRegister.getServiceWeightMap(serviceBean.getName());
-        URL_MAP.put(serviceBean.getName(),result);
+        URL_MAP.put(serviceBean.getName(), result);
         abstractRegister.subscribe(url);
     }
 
@@ -119,7 +124,7 @@ public class Client {
                 }
             }
             URL url = new URL();
-            url.addParameter("servicePath",providerURL.getServiceName()+"/provider");
+            url.addParameter("servicePath", providerURL.getServiceName() + "/provider");
             url.addParameter("providerIps", JSON.toJSONString(providerIps));
             abstractRegister.doAfterSubscribe(url);
         }
@@ -147,8 +152,7 @@ public class Client {
                 try {
                     //阻塞模式
                     RpcInvocation data = SEND_QUEUE.take();
-                    String json = JSON.toJSONString(data);
-                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
+                    RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(data));
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
                     channelFuture.channel().writeAndFlush(rpcProtocol);
                 } catch (Exception e) {
@@ -165,11 +169,34 @@ public class Client {
     private void initClientConfig() {
         //初始化路由策略
         String routerStrategy = clientConfig.getRouterStrategy();
-        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
-            IROUTER = new RandomRouterImpl();
-        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)) {
-            IROUTER = new RotateRouterImpl();
+        switch (routerStrategy) {
+            case RANDOM_ROUTER_TYPE:
+                IROUTER = new RandomRouterImpl();
+                break;
+            case ROTATE_ROUTER_TYPE:
+                IROUTER = new RotateRouterImpl();
+                break;
+            default:
+                throw new RuntimeException("no match routerStrategy for" + routerStrategy);
         }
+        String clientSerialize = clientConfig.getClientSerialize();
+        switch (clientSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for " + clientSerialize);
+        }
+        System.out.println("clientSerialize is " + clientSerialize);
     }
 
 

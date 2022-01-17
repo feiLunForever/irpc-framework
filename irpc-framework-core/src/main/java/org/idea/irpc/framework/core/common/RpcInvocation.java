@@ -1,13 +1,15 @@
 package org.idea.irpc.framework.core.common;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * @Author linhao
  * @Date created in 4:24 下午 2021/12/5
  */
-public class RpcInvocation {
+public class RpcInvocation implements Serializable {
 
+    private static final long serialVersionUID = -3611379458492006176L;
     private String targetMethod;
 
     private String targetServiceName;
