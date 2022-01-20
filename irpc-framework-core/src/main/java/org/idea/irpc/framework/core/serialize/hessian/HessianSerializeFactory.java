@@ -3,7 +3,6 @@ package org.idea.irpc.framework.core.serialize.hessian;
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
-import org.idea.irpc.framework.core.serialize.Student;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,12 +46,4 @@ public class HessianSerializeFactory implements SerializeFactory {
         return (T) result;
     }
 
-    public static void main(String[] args) {
-        Student stu = new Student(1, "hessian", "boy");
-        HessianSerializeFactory hessianSerializeFactory = new HessianSerializeFactory();
-        byte[] result = hessianSerializeFactory.serialize(stu);
-        Student student = hessianSerializeFactory.deserialize(result,Student.class);
-        System.out.println(student);
-        System.out.println(new String(result));
-    }
 }

@@ -4,7 +4,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
-import org.idea.irpc.framework.core.serialize.Student;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -59,14 +58,5 @@ public class KryoSerializeFactory implements SerializeFactory {
             }
         }
     }
-
-    public static void main(String[] args) {
-        KryoSerializeFactory kryoSerializeFactory = new KryoSerializeFactory();
-        Student student = new Student(1,"idea","1");
-        byte[] r = kryoSerializeFactory.serialize(student);
-        Student result = kryoSerializeFactory.deserialize(r,Student.class);
-        System.out.println(result);
-    }
-
 
 }

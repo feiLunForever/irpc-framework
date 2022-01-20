@@ -163,7 +163,6 @@ public class Client {
     }
 
     /**
-     * todo
      * 后续可以考虑加入spi
      */
     private void initClientConfig() {
@@ -196,7 +195,6 @@ public class Client {
             default:
                 throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
-        System.out.println("clientSerialize is " + clientSerialize);
     }
 
 
