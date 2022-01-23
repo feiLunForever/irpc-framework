@@ -1,6 +1,5 @@
 package org.idea.irpc.framework.core.serialize.irpc;
 
-import com.alibaba.fastjson.JSON;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.serialize.User;
 
