@@ -89,13 +89,11 @@ public class IRpcSerializeFactory implements SerializeFactory {
      * length：截取的数据长度
      */
     private byte[] userToByteArray(User user) {
-        String username = user.getUsername();
-        byte[] data = new byte[Integer.BYTES + Long.BYTES + username.getBytes().length];
+        byte[] data = new byte[Integer.BYTES + Long.BYTES];
         int index = 0;
         System.arraycopy(ByteConvertUtils.intToByte(user.getId()), 0, data, index, Integer.BYTES);
         index += Integer.BYTES;
         System.arraycopy(ByteConvertUtils.longToByte(user.getTel()), 0, data, index, Long.BYTES);
-        System.arraycopy(ByteConvertUtils.stringToBytes(username), 0, data, index, username.getBytes().length);
         return data;
     }
 
@@ -117,11 +115,8 @@ public class IRpcSerializeFactory implements SerializeFactory {
     public static void main(String[] args) {
         IRpcSerializeFactory serializeFactory = new IRpcSerializeFactory();
         User user = new User();
-        user.setId(12);
+        user.setId(11);
         user.setTel(12L);
-        user.setUsername("idea");
-//        String json = JSON.toJSONString(user);
-//        System.out.println(json.getBytes().length);
         byte[] r = serializeFactory.serialize(user);
         System.out.println(r.length);
         User user1 = serializeFactory.byteArrayToUser(r);
