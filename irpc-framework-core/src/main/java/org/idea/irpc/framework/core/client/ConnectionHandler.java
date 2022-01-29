@@ -123,9 +123,7 @@ public class ConnectionHandler {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
         Selector selector = new Selector();
-        selector.setSelectStrategy("rotateRouter");
         selector.setProviderServiceName(providerServiceName);
-        //todo 随机获取
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }
