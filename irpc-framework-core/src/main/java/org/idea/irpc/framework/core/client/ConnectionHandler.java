@@ -4,19 +4,17 @@ package org.idea.irpc.framework.core.client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
+import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.filter.IFilter;
+import org.idea.irpc.framework.core.filter.impl.ClientFilterChain;
+import org.idea.irpc.framework.core.filter.impl.GroupFilterImpl;
+import org.idea.irpc.framework.core.filter.impl.RpcContextClientFilterImpl;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ProviderNodeInfo;
-import org.idea.irpc.framework.core.router.IRouter;
-import org.idea.irpc.framework.core.router.RotateRouterImpl;
 import org.idea.irpc.framework.core.router.Selector;
 
-import javax.xml.stream.events.DTD;
-import java.net.UnknownServiceException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 
@@ -116,18 +114,19 @@ public class ConnectionHandler {
     /**
      * 默认走随机策略获取ChannelFuture
      *
-     * @param providerServiceName
+     * @param rpcInvocation
      * @return
      */
-    public static ChannelFuture getChannelFuture(String providerServiceName) {
+    public static ChannelFuture getChannelFuture(RpcInvocation rpcInvocation) {
+        String providerServiceName = rpcInvocation.getTargetServiceName();
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
+        CLIENT_FILTER_CHAIN.doFilter(channelFutureWrappers,rpcInvocation);
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);
         selector.setChannelFutureWrappers(CommonUtils.convertFromList(channelFutureWrappers));
-        //todo 随机获取
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }

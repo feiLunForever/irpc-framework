@@ -3,6 +3,8 @@ package org.idea.irpc.framework.core.common.cache;
 import org.idea.irpc.framework.core.common.ChannelFuturePollingRef;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
 import org.idea.irpc.framework.core.common.RpcInvocation;
+import org.idea.irpc.framework.core.common.config.ClientConfig;
+import org.idea.irpc.framework.core.filter.impl.ClientFilterChain;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.router.IRouter;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
@@ -34,4 +36,6 @@ public class CommonClientCache {
     public static ChannelFuturePollingRef CHANNEL_FUTURE_POLLING_REF = new ChannelFuturePollingRef();
     public static IRouter IROUTER;
     public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
+    public static ClientConfig CLIENT_CONFIG;
+    public static ClientFilterChain CLIENT_FILTER_CHAIN ;
 }

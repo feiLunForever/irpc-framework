@@ -8,14 +8,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.idea.irpc.framework.core.common.RpcDecoder;
-import org.idea.irpc.framework.core.common.RpcEncoder;
-import org.idea.irpc.framework.core.common.RpcInvocation;
-import org.idea.irpc.framework.core.common.RpcProtocol;
+import org.idea.irpc.framework.core.common.*;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
+import org.idea.irpc.framework.core.common.constants.RpcConstants;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.filter.impl.ClientFilterChain;
+import org.idea.irpc.framework.core.filter.impl.ClientLogFilterImpl;
+import org.idea.irpc.framework.core.filter.impl.GroupFilterImpl;
+import org.idea.irpc.framework.core.filter.impl.RpcContextClientFilterImpl;
 import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.core.registy.URL;
@@ -83,6 +85,7 @@ public class Client {
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
+        CLIENT_CONFIG = this.clientConfig;
         RpcReference rpcReference;
         if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
@@ -151,10 +154,12 @@ public class Client {
             while (true) {
                 try {
                     //阻塞模式
-                    RpcInvocation data = SEND_QUEUE.take();
-                    RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(data));
-                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
-                    channelFuture.channel().writeAndFlush(rpcProtocol);
+                    RpcInvocation rpcInvocation = SEND_QUEUE.take();
+                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
+                    if (channelFuture != null) {
+                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                        channelFuture.channel().writeAndFlush(rpcProtocol);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -195,6 +200,13 @@ public class Client {
             default:
                 throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
+
+        //初始化过滤链
+        ClientFilterChain clientFilterChain = new ClientFilterChain();
+        clientFilterChain.addClientFilter(new GroupFilterImpl());
+        clientFilterChain.addClientFilter(new RpcContextClientFilterImpl());
+        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
+        CLIENT_FILTER_CHAIN = clientFilterChain;
     }
 
 
@@ -204,7 +216,10 @@ public class Client {
         client.initClientConfig();
         RpcReferenceWrapper<DataService> rpcReferenceWrapper = new RpcReferenceWrapper<>();
         rpcReferenceWrapper.setAimClass(DataService.class);
-        rpcReferenceWrapper.setGroup("default");
+        rpcReferenceWrapper.setGroup("dev");
+        RpcContext.addAttachment("zone", "master");
+        RpcContext.addAttachment("test-key", "test-key-2");
+        //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         client.doSubscribeService(DataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());

@@ -3,6 +3,7 @@ package org.idea.irpc.framework.jmh.proxy;
 import org.idea.irpc.framework.core.client.Client;
 import org.idea.irpc.framework.core.client.ConnectionHandler;
 import org.idea.irpc.framework.core.client.RpcReference;
+import org.idea.irpc.framework.core.client.RpcReferenceWrapper;
 import org.idea.irpc.framework.interfaces.DataService;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Setup;
@@ -26,7 +27,10 @@ public class ProxyCompareTest {
         client = new Client();
         rpcReference = client.initClientApplication();
         try {
-            dataService = rpcReference.get(DataService.class);
+            RpcReferenceWrapper<DataService> rpcReferenceWrapper = new RpcReferenceWrapper();
+            rpcReferenceWrapper.setAimClass(DataService.class);
+            rpcReferenceWrapper.setGroup("default");
+            dataService = rpcReference.get(rpcReferenceWrapper);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

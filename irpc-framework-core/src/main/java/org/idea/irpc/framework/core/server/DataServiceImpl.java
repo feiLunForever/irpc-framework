@@ -1,5 +1,6 @@
 package org.idea.irpc.framework.core.server;
 
+import org.idea.irpc.framework.core.common.RpcContext;
 import org.idea.irpc.framework.interfaces.DataService;
 
 import java.util.ArrayList;
@@ -13,7 +14,9 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public String sendData(String body) {
-        System.out.println("这里是服务提供者，body is " + body);
+        String zone = (String) RpcContext.getAttachment("zone");
+        System.out.println(RpcContext.getAttachment("c_app_name"));
+        System.out.println("这里是服务提供者，body is " + body + ",zone is: " + zone);
         return "success";
     }
 

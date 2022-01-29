@@ -13,6 +13,8 @@ import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.filter.impl.RpcContextServerFilterImpl;
+import org.idea.irpc.framework.core.filter.impl.ServerFilterChain;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
@@ -98,8 +100,10 @@ public class Server {
             default:
                 throw new RuntimeException("no match serialize type for" + serverSerialize);
         }
-        System.out.println("serverSerialize is "+serverSerialize);
-
+        SERVER_CONFIG = serverConfig;
+        ServerFilterChain serverFilterChain = new ServerFilterChain();
+        serverFilterChain.addServerFilter(new RpcContextServerFilterImpl());
+        SERVER_FILTER_CHAIN = serverFilterChain;
     }
 
     /**
@@ -131,7 +135,7 @@ public class Server {
         PROVIDER_URL_SET.add(url);
     }
 
-    public void batchExportUrl(){
+    public void batchExportUrl() {
         Thread task = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -154,8 +158,8 @@ public class Server {
         server.initServerConfig();
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
-        server.exportService(new ServiceWrapper(new DataServiceImpl()));
-        server.exportService(new ServiceWrapper(new UserServiceImpl()));
+        server.exportService(new ServiceWrapper(new DataServiceImpl(), "dev"));
+        server.exportService(new ServiceWrapper(new UserServiceImpl(), "dev"));
         ApplicationShutdownHook.registryShutdownHook();
         server.startApplication();
     }
