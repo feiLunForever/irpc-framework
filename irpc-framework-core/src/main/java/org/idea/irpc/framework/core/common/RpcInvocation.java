@@ -2,6 +2,8 @@ package org.idea.irpc.framework.core.common;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Author linhao
@@ -19,6 +21,16 @@ public class RpcInvocation implements Serializable {
     private String uuid;
 
     private Object response;
+
+    private Map<String,Object> attachments = new HashMap<>();
+
+    public Map<String, Object> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(Map<String, Object> attachments) {
+        this.attachments = attachments;
+    }
 
     public Object getResponse() {
         return response;

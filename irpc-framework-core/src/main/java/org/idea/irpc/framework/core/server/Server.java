@@ -105,9 +105,10 @@ public class Server {
     /**
      * 暴露服务信息
      *
-     * @param serviceBean
+     * @param serviceWrapper
      */
-    public void exportService(Object serviceBean) {
+    public void exportService(ServiceWrapper serviceWrapper) {
+        Object serviceBean = serviceWrapper.getServiceObj();
         if (serviceBean.getClass().getInterfaces().length == 0) {
             throw new RuntimeException("service must had interfaces!");
         }
@@ -126,6 +127,7 @@ public class Server {
         url.setApplicationName(serverConfig.getApplicationName());
         url.addParameter("host", CommonUtils.getIpAddress());
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
+        url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         PROVIDER_URL_SET.add(url);
     }
 
@@ -152,8 +154,8 @@ public class Server {
         server.initServerConfig();
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
-        server.exportService(new DataServiceImpl());
-        server.exportService(new UserServiceImpl());
+        server.exportService(new ServiceWrapper(new DataServiceImpl()));
+        server.exportService(new ServiceWrapper(new UserServiceImpl()));
         ApplicationShutdownHook.registryShutdownHook();
         server.startApplication();
     }

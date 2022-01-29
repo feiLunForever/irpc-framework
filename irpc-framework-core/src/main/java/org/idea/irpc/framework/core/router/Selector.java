@@ -1,5 +1,7 @@
 package org.idea.irpc.framework.core.router;
 
+import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
+
 /**
  * @Author linhao
  * @Date created in 8:13 下午 2022/1/5
@@ -7,24 +9,15 @@ package org.idea.irpc.framework.core.router;
 public class Selector {
 
     /**
-     * 筛选策略
-     */
-    private String selectStrategy;
-
-    /**
      * 服务命名
      * eg: com.sise.test.DataService
      */
     private String providerServiceName;
 
-
-    public String getSelectStrategy() {
-        return selectStrategy;
-    }
-
-    public void setSelectStrategy(String selectStrategy) {
-        this.selectStrategy = selectStrategy;
-    }
+    /**
+     * 经过二次筛选之后的future集合
+     */
+    private ChannelFutureWrapper[] channelFutureWrappers;
 
     public String getProviderServiceName() {
         return providerServiceName;
@@ -32,5 +25,13 @@ public class Selector {
 
     public void setProviderServiceName(String providerServiceName) {
         this.providerServiceName = providerServiceName;
+    }
+
+    public ChannelFutureWrapper[] getChannelFutureWrappers() {
+        return channelFutureWrappers;
+    }
+
+    public void setChannelFutureWrappers(ChannelFutureWrapper[] channelFutureWrappers) {
+        this.channelFutureWrappers = channelFutureWrappers;
     }
 }

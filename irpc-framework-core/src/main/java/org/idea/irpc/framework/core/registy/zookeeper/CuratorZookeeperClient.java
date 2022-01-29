@@ -193,8 +193,8 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
                     public void process(WatchedEvent watchedEvent) {
                         System.out.println(watchedEvent.getType());
                         if(NodeDeleted.equals(watchedEvent.getType())){
-                            ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(watchedEvent.getPath());
-                            System.out.println(providerNodeInfo);
+//                            ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(watchedEvent.getPath());
+//                            System.out.println(providerNodeInfo);
                         }
                     }
                 });

@@ -60,12 +60,14 @@ public class ConnectionHandler {
         //到底这个channelFuture里面是什么
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         String providerURLInfo = URL_MAP.get(providerServiceName).get(providerIp);
-        System.out.println(providerURLInfo);
+        ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(providerURLInfo);
+        //todo 缺少一个将url进行转换的组件
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);
         channelFutureWrapper.setPort(port);
-        channelFutureWrapper.setWeight(Integer.valueOf(providerURLInfo.substring(providerURLInfo.lastIndexOf(";")+1)));
+        channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
+        channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
@@ -123,8 +125,8 @@ public class ConnectionHandler {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
         Selector selector = new Selector();
-        selector.setSelectStrategy("rotateRouter");
         selector.setProviderServiceName(providerServiceName);
+        selector.setChannelFutureWrappers(CommonUtils.convertFromList(channelFutureWrappers));
         //todo 随机获取
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
