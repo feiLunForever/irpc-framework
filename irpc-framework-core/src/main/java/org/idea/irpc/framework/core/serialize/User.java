@@ -3,6 +3,8 @@ package org.idea.irpc.framework.core.serialize;
 import java.io.Serializable;
 
 /**
+ * 测试自定义序列化技术时使用的demo
+ *
  * @Author linhao
  * @Date created in 7:28 下午 2022/1/20
  */
