@@ -11,13 +11,12 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.idea.irpc.framework.core.common.*;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
-import org.idea.irpc.framework.core.common.constants.RpcConstants;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
-import org.idea.irpc.framework.core.filter.impl.ClientFilterChain;
-import org.idea.irpc.framework.core.filter.impl.ClientLogFilterImpl;
-import org.idea.irpc.framework.core.filter.impl.GroupFilterImpl;
-import org.idea.irpc.framework.core.filter.impl.RpcContextClientFilterImpl;
+import org.idea.irpc.framework.core.filter.client.ClientFilterChain;
+import org.idea.irpc.framework.core.filter.client.ClientLogFilterImpl;
+import org.idea.irpc.framework.core.filter.client.DirectInvokeFilterImpl;
+import org.idea.irpc.framework.core.filter.client.GroupFilterImpl;
 import org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.core.registy.URL;
@@ -25,7 +24,6 @@ import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.idea.irpc.framework.core.router.RandomRouterImpl;
 import org.idea.irpc.framework.core.router.RotateRouterImpl;
-import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
@@ -201,10 +199,10 @@ public class Client {
                 throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
 
-        //初始化过滤链
+        //todo 初始化过滤链 指定过滤的顺序
         ClientFilterChain clientFilterChain = new ClientFilterChain();
+        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
         clientFilterChain.addClientFilter(new GroupFilterImpl());
-        clientFilterChain.addClientFilter(new RpcContextClientFilterImpl());
         clientFilterChain.addClientFilter(new ClientLogFilterImpl());
         CLIENT_FILTER_CHAIN = clientFilterChain;
     }
@@ -217,8 +215,8 @@ public class Client {
         RpcReferenceWrapper<DataService> rpcReferenceWrapper = new RpcReferenceWrapper<>();
         rpcReferenceWrapper.setAimClass(DataService.class);
         rpcReferenceWrapper.setGroup("dev");
-        RpcContext.addAttachment("zone", "master");
-        RpcContext.addAttachment("test-key", "test-key-2");
+        rpcReferenceWrapper.setServiceToken("token-a");
+        rpcReferenceWrapper.setUrl("192.168.43.227:9093");
         //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         client.doSubscribeService(DataService.class);

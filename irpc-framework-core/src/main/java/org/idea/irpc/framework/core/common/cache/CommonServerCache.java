@@ -2,10 +2,11 @@ package org.idea.irpc.framework.core.common.cache;
 
 import io.netty.util.internal.ConcurrentSet;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
-import org.idea.irpc.framework.core.filter.impl.ServerFilterChain;
+import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
+import org.idea.irpc.framework.core.server.ServiceWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,4 +24,5 @@ public class CommonServerCache {
     public static SerializeFactory SERVER_SERIALIZE_FACTORY;
     public static ServerConfig SERVER_CONFIG;
     public static ServerFilterChain SERVER_FILTER_CHAIN;
+    public static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap<>();
 }

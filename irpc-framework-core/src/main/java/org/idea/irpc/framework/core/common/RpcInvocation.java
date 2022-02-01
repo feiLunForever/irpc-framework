@@ -2,7 +2,6 @@ package org.idea.irpc.framework.core.common;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,16 +23,6 @@ public class RpcInvocation implements Serializable {
     private Object response;
 
     private Map<String, Object> attachments = new ConcurrentHashMap<>();
-
-    private Map<String,Object> rpcContext = new ConcurrentHashMap<>();
-
-    public Map<String, Object> getRpcContext() {
-        return rpcContext;
-    }
-
-    public void setRpcContext(Map<String, Object> rpcContext) {
-        this.rpcContext = rpcContext;
-    }
 
     public Map<String, Object> getAttachments() {
         return attachments;
@@ -93,7 +82,6 @@ public class RpcInvocation implements Serializable {
                 ", uuid='" + uuid + '\'' +
                 ", response=" + response +
                 ", attachments=" + attachments +
-                ", rpcContext=" + rpcContext +
                 '}';
     }
 }

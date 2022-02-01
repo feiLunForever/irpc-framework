@@ -1,10 +1,8 @@
 package org.idea.irpc.framework.core.server;
 
-import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.idea.irpc.framework.core.common.RpcContext;
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
 
@@ -24,6 +22,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws InvocationTargetException, IllegalAccessException {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
         RpcInvocation rpcInvocation =SERVER_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(),RpcInvocation.class);
+        //执行过滤链路
         SERVER_FILTER_CHAIN.doFilter(rpcInvocation);
         Object aimObject = PROVIDER_CLASS_MAP.get(rpcInvocation.getTargetServiceName());
         Method[] methods = aimObject.getClass().getDeclaredMethods();

@@ -32,7 +32,7 @@ public class JavassistInvocationHandler implements InvocationHandler {
         rpcInvocation.setArgs(args);
         rpcInvocation.setTargetMethod(method.getName());
         rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
-        rpcInvocation.getAttachments().put("group",rpcReferenceWrapper.getGroup());
+        rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         SEND_QUEUE.add(rpcInvocation);

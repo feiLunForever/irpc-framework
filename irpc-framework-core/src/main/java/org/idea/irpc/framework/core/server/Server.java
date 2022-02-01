@@ -13,9 +13,9 @@ import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
-import org.idea.irpc.framework.core.filter.impl.RpcContextServerFilterImpl;
-import org.idea.irpc.framework.core.filter.impl.ServerFilterChain;
-import org.idea.irpc.framework.core.registy.RegistryService;
+import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
+import org.idea.irpc.framework.core.filter.server.ServerLogFilterImpl;
+import org.idea.irpc.framework.core.filter.server.ServerTokenFilterImpl;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
@@ -24,10 +24,6 @@ import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
 import org.idea.irpc.framework.core.serialize.kryo.KryoSerializeFactory;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CLIENT_SERIALIZE_FACTORY;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.KRYO_SERIALIZE_TYPE;
@@ -102,7 +98,8 @@ public class Server {
         }
         SERVER_CONFIG = serverConfig;
         ServerFilterChain serverFilterChain = new ServerFilterChain();
-        serverFilterChain.addServerFilter(new RpcContextServerFilterImpl());
+        serverFilterChain.addServerFilter(new ServerLogFilterImpl());
+        serverFilterChain.addServerFilter(new ServerTokenFilterImpl());
         SERVER_FILTER_CHAIN = serverFilterChain;
     }
 
@@ -132,7 +129,11 @@ public class Server {
         url.addParameter("host", CommonUtils.getIpAddress());
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
+        url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
+        if (CommonUtils.isNotEmpty(serviceWrapper.getServiceToken())) {
+            PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
+        }
     }
 
     public void batchExportUrl() {
@@ -158,8 +159,14 @@ public class Server {
         server.initServerConfig();
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
-        server.exportService(new ServiceWrapper(new DataServiceImpl(), "dev"));
-        server.exportService(new ServiceWrapper(new UserServiceImpl(), "dev"));
+        ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
+        dataServiceServiceWrapper.setServiceToken("token-a");
+        dataServiceServiceWrapper.setLimit(2);
+        ServiceWrapper userServiceServiceWrapper = new ServiceWrapper(new UserServiceImpl(), "dev");
+        userServiceServiceWrapper.setServiceToken("token-b");
+        userServiceServiceWrapper.setLimit(2);
+        server.exportService(dataServiceServiceWrapper);
+        server.exportService(userServiceServiceWrapper);
         ApplicationShutdownHook.registryShutdownHook();
         server.startApplication();
     }
