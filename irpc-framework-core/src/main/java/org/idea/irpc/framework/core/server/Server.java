@@ -136,6 +136,9 @@ public class Server {
         }
     }
 
+    /**
+     * 批量暴露URL
+     */
     public void batchExportUrl() {
         Thread task = new Thread(new Runnable() {
             @Override
@@ -152,7 +155,6 @@ public class Server {
         });
         task.start();
     }
-
 
     public static void main(String[] args) throws InterruptedException {
         Server server = new Server();

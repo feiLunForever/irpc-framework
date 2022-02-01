@@ -17,7 +17,7 @@ public class ServerLogFilterImpl implements IServerFilter {
 
     @Override
     public void doFilter(RpcInvocation rpcInvocation) {
-        System.out.println(rpcInvocation.getAttachments().get("c_app_name") + " do invoke -----> " + rpcInvocation.getTargetServiceName() + "#" + rpcInvocation.getTargetMethod());
+        logger.info(rpcInvocation.getAttachments().get("c_app_name") + " do invoke -----> " + rpcInvocation.getTargetServiceName() + "#" + rpcInvocation.getTargetMethod());
     }
 
 }
