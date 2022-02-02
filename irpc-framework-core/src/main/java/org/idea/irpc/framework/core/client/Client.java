@@ -13,6 +13,7 @@ import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.filter.IClientFilter;
 import org.idea.irpc.framework.core.filter.client.ClientFilterChain;
 import org.idea.irpc.framework.core.filter.client.ClientLogFilterImpl;
 import org.idea.irpc.framework.core.filter.client.DirectInvokeFilterImpl;
@@ -28,14 +29,17 @@ import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
 import org.idea.irpc.framework.core.serialize.kryo.KryoSerializeFactory;
+import org.idea.irpc.framework.core.spi.ExtensionLoader;
 import org.idea.irpc.framework.interfaces.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
+import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CACHE;
 
 /**
  * @Author linhao
@@ -168,7 +172,7 @@ public class Client {
     /**
      * 后续可以考虑加入spi
      */
-    private void initClientConfig() {
+    private void initClientConfig() throws IOException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         //初始化路由策略
         String routerStrategy = clientConfig.getRouterStrategy();
         switch (routerStrategy) {
@@ -200,10 +204,17 @@ public class Client {
         }
 
         //todo 初始化过滤链 指定过滤的顺序
+        EXTENSION_LOADER.loadExtension(IClientFilter.class);
         ClientFilterChain clientFilterChain = new ClientFilterChain();
-        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
-        clientFilterChain.addClientFilter(new GroupFilterImpl());
-        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
+        Map<String,Object> objectMap = EXTENSION_LOADER_CACHE.get(IClientFilter.class.getName());
+        //todo 这里的map可能是无顺序
+        for (String implClassName : objectMap.keySet()) {
+            IClientFilter iClientFilter = (IClientFilter) objectMap.get(implClassName);
+            clientFilterChain.addClientFilter(iClientFilter);
+        }
+//        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
+//        clientFilterChain.addClientFilter(new GroupFilterImpl());
+//        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
         CLIENT_FILTER_CHAIN = clientFilterChain;
     }
 
