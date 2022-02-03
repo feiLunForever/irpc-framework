@@ -8,8 +8,6 @@ import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ProviderNodeInfo;
-import org.idea.irpc.framework.core.router.IRouter;
-import org.idea.irpc.framework.core.router.RotateRouterImpl;
 import org.idea.irpc.framework.core.router.Selector;
 
 import java.util.*;
@@ -118,14 +116,14 @@ public class ConnectionHandler {
      */
     public static ChannelFuture getChannelFuture(RpcInvocation rpcInvocation) {
         String providerServiceName = rpcInvocation.getTargetServiceName();
-        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        if (CommonUtils.isEmptyList(channelFutureWrappers)) {
+        ChannelFutureWrapper[] channelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
+        if (channelFutureWrappers == null || channelFutureWrappers.length == 0) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
-        CLIENT_FILTER_CHAIN.doFilter(channelFutureWrappers,rpcInvocation);
+        CLIENT_FILTER_CHAIN.doFilter(Arrays.asList(channelFutureWrappers),rpcInvocation);
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);
-        selector.setChannelFutureWrappers(CommonUtils.convertFromList(channelFutureWrappers));
+        selector.setChannelFutureWrappers(channelFutureWrappers);
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }
