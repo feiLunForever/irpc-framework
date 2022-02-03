@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +22,7 @@ public class ExtensionLoader {
 
     public static String EXTENSION_LOADER_DIR_PREFIX = "META-INF/irpc/";
 
-    public static Map<String, Map<String, Object>> EXTENSION_LOADER_CACHE = new ConcurrentHashMap<>();
+    public static Map<String, LinkedHashMap<String, Object>> EXTENSION_LOADER_CACHE = new ConcurrentHashMap<>();
 
     public void loadExtension(Class clazz) throws IOException, IllegalAccessException, InstantiationException, ClassNotFoundException {
         if (clazz == null) {
@@ -29,13 +30,15 @@ public class ExtensionLoader {
         }
         String spiFilePath = EXTENSION_LOADER_DIR_PREFIX + clazz.getName();
         ClassLoader classLoader = this.getClass().getClassLoader();
-        Enumeration<URL> enumeration = classLoader.getResources(spiFilePath);
+        Enumeration<URL> enumeration = null;
+        enumeration = classLoader.getResources(spiFilePath);
         while (enumeration.hasMoreElements()) {
             URL url = enumeration.nextElement();
-            InputStreamReader inputStreamReader = new InputStreamReader(url.openStream());
+            InputStreamReader inputStreamReader = null;
+            inputStreamReader = new InputStreamReader(url.openStream());
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String line;
-            Map<String, Object> objectMap = new HashMap<>();
+            LinkedHashMap<String, Object> objectMap = new LinkedHashMap<>();
             while ((line = bufferedReader.readLine()) != null) {
                 if (line.startsWith("#")) {
                     continue;

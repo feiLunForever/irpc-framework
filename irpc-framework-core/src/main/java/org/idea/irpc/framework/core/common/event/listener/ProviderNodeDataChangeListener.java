@@ -20,8 +20,10 @@ public class ProviderNodeDataChangeListener implements IRpcListener<IRpcNodeChan
         ProviderNodeInfo providerNodeInfo = ((ProviderNodeInfo) t);
         List<ChannelFutureWrapper> channelFutureWrappers =  CONNECT_MAP.get(providerNodeInfo.getServiceName());
         for (ChannelFutureWrapper channelFutureWrapper : channelFutureWrappers) {
+            //重置分组信息
             String address = channelFutureWrapper.getHost()+":"+channelFutureWrapper.getPort();
             if(address.equals(providerNodeInfo.getAddress())){
+                channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
                 //修改权重
                 channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
                 URL url = new URL();

@@ -6,6 +6,7 @@ import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.filter.client.ClientFilterChain;
 import org.idea.irpc.framework.core.registy.URL;
+import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.router.IRouter;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.spi.ExtensionLoader;
@@ -38,6 +39,7 @@ public class CommonClientCache {
     public static IRouter IROUTER;
     public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
     public static ClientConfig CLIENT_CONFIG;
-    public static ClientFilterChain CLIENT_FILTER_CHAIN ;
+    public static ClientFilterChain CLIENT_FILTER_CHAIN;
+    public static AbstractRegister ABSTRACT_REGISTER;
     public static ExtensionLoader EXTENSION_LOADER = new ExtensionLoader();
 }

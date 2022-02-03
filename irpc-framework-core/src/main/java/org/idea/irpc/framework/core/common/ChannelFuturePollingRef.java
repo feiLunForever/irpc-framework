@@ -2,7 +2,6 @@ package org.idea.irpc.framework.core.common;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SERVICE_ROUTER_MAP;
 
 /**
  * @Author linhao

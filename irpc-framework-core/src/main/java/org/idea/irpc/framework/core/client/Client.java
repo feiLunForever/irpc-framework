@@ -23,8 +23,10 @@ import org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.idea.irpc.framework.core.router.IRouter;
 import org.idea.irpc.framework.core.router.RandomRouterImpl;
 import org.idea.irpc.framework.core.router.RotateRouterImpl;
+import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
@@ -105,6 +107,7 @@ public class Client {
     public void doSubscribeService(Class serviceBean) {
         if (abstractRegister == null) {
             abstractRegister = new ZookeeperRegister(clientConfig.getRegisterAddr());
+            ABSTRACT_REGISTER = abstractRegister;
         }
         URL url = new URL();
         url.setApplicationName(clientConfig.getApplicationName());
@@ -116,7 +119,7 @@ public class Client {
     }
 
     /**
-     * 开始和各个provider建立连接
+     * 开始和各个provider建立连接，同时监听各个providerNode节点的变化（child变化和nodeData的变化）
      */
     public void doConnectServer() {
         for (URL providerURL : SUBSCRIBE_SERVICE_LIST) {
@@ -174,47 +177,33 @@ public class Client {
      */
     private void initClientConfig() throws IOException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         //初始化路由策略
+        EXTENSION_LOADER.loadExtension(IRouter.class);
         String routerStrategy = clientConfig.getRouterStrategy();
-        switch (routerStrategy) {
-            case RANDOM_ROUTER_TYPE:
-                IROUTER = new RandomRouterImpl();
-                break;
-            case ROTATE_ROUTER_TYPE:
-                IROUTER = new RotateRouterImpl();
-                break;
-            default:
-                throw new RuntimeException("no match routerStrategy for" + routerStrategy);
+        LinkedHashMap<String, Object> iRouterMap = EXTENSION_LOADER_CACHE.get(IRouter.class.getName());
+        IRouter iRouter = (IRouter) iRouterMap.get(routerStrategy);
+        if (iRouter == null) {
+            throw new RuntimeException("no match routerStrategy for" + routerStrategy);
         }
-        String clientSerialize = clientConfig.getClientSerialize();
-        switch (clientSerialize) {
-            case JDK_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
-                break;
-            case FAST_JSON_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
-                break;
-            case HESSIAN2_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
-                break;
-            case KRYO_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
-                break;
-            default:
-                throw new RuntimeException("no match serialize type for " + clientSerialize);
-        }
+        IROUTER = iRouter;
 
-        //todo 初始化过滤链 指定过滤的顺序
+        //初始化序列化框架
+        EXTENSION_LOADER.loadExtension(SerializeFactory.class);
+        String clientSerialize = clientConfig.getClientSerialize();
+        LinkedHashMap<String, Object> serializeMap = EXTENSION_LOADER_CACHE.get(SerializeFactory.class.getName());
+        SerializeFactory serializeFactory = (SerializeFactory) serializeMap.get(clientSerialize);
+        if (serializeFactory == null) {
+            throw new RuntimeException("no match serialize type for " + clientSerialize);
+        }
+        CLIENT_SERIALIZE_FACTORY = serializeFactory;
+
+        //初始化过滤链
         EXTENSION_LOADER.loadExtension(IClientFilter.class);
         ClientFilterChain clientFilterChain = new ClientFilterChain();
-        Map<String,Object> objectMap = EXTENSION_LOADER_CACHE.get(IClientFilter.class.getName());
-        //todo 这里的map可能是无顺序
-        for (String implClassName : objectMap.keySet()) {
-            IClientFilter iClientFilter = (IClientFilter) objectMap.get(implClassName);
+        LinkedHashMap<String, Object> iClientMap = EXTENSION_LOADER_CACHE.get(IClientFilter.class.getName());
+        for (String implClassName : iClientMap.keySet()) {
+            IClientFilter iClientFilter = (IClientFilter) iClientMap.get(implClassName);
             clientFilterChain.addClientFilter(iClientFilter);
         }
-//        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
-//        clientFilterChain.addClientFilter(new GroupFilterImpl());
-//        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
         CLIENT_FILTER_CHAIN = clientFilterChain;
     }
 
@@ -227,14 +216,14 @@ public class Client {
         rpcReferenceWrapper.setAimClass(DataService.class);
         rpcReferenceWrapper.setGroup("dev");
         rpcReferenceWrapper.setServiceToken("token-a");
-        rpcReferenceWrapper.setUrl("192.168.43.227:9093");
+//        rpcReferenceWrapper.setUrl("192.168.43.227:9093");
         //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         client.doSubscribeService(DataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10000; i++) {
             try {
                 String result = dataService.sendData("test");
                 System.out.println(result);

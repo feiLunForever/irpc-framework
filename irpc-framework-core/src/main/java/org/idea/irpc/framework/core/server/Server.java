@@ -13,20 +13,28 @@ import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
+import org.idea.irpc.framework.core.filter.IClientFilter;
+import org.idea.irpc.framework.core.filter.IServerFilter;
 import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
 import org.idea.irpc.framework.core.filter.server.ServerLogFilterImpl;
 import org.idea.irpc.framework.core.filter.server.ServerTokenFilterImpl;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
 import org.idea.irpc.framework.core.serialize.kryo.KryoSerializeFactory;
 
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.KRYO_SERIALIZE_TYPE;
+import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CACHE;
 
 /**
  * @Author linhao
@@ -76,30 +84,27 @@ public class Server {
         bootstrap.bind(serverConfig.getServerPort()).sync();
     }
 
-    public void initServerConfig() {
+    public void initServerConfig() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
         ServerConfig serverConfig = PropertiesBootstrap.loadServerConfigFromLocal();
         this.setServerConfig(serverConfig);
-        String serverSerialize = serverConfig.getServerSerialize();
-        switch (serverSerialize) {
-            case JDK_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new JdkSerializeFactory();
-                break;
-            case FAST_JSON_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
-                break;
-            case HESSIAN2_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new HessianSerializeFactory();
-                break;
-            case KRYO_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new KryoSerializeFactory();
-                break;
-            default:
-                throw new RuntimeException("no match serialize type for" + serverSerialize);
-        }
         SERVER_CONFIG = serverConfig;
+        //序列化技术初始化
+        String serverSerialize = serverConfig.getServerSerialize();
+        EXTENSION_LOADER.loadExtension(SerializeFactory.class);
+        LinkedHashMap<String, Object> serializeFactoryMap = EXTENSION_LOADER_CACHE.get(SerializeFactory.class.getName());
+        SerializeFactory serializeFactory = (SerializeFactory) serializeFactoryMap.get(serverSerialize);
+        if (serializeFactory == null) {
+            throw new RuntimeException("no match serialize type for" + serverSerialize);
+        }
+        SERVER_SERIALIZE_FACTORY = serializeFactory;
+        //过滤链技术初始化
+        EXTENSION_LOADER.loadExtension(IServerFilter.class);
+        LinkedHashMap<String, Object> iServerFilterMap = EXTENSION_LOADER_CACHE.get(IServerFilter.class.getName());
         ServerFilterChain serverFilterChain = new ServerFilterChain();
-        serverFilterChain.addServerFilter(new ServerLogFilterImpl());
-        serverFilterChain.addServerFilter(new ServerTokenFilterImpl());
+        for (String iServerFilterKey : iServerFilterMap.keySet()) {
+            IServerFilter iServerFilter = (IServerFilter) iServerFilterMap.get(iServerFilterKey);
+            serverFilterChain.addServerFilter(iServerFilter);
+        }
         SERVER_FILTER_CHAIN = serverFilterChain;
     }
 
@@ -156,7 +161,7 @@ public class Server {
         task.start();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
         Server server = new Server();
         server.initServerConfig();
         iRpcListenerLoader = new IRpcListenerLoader();

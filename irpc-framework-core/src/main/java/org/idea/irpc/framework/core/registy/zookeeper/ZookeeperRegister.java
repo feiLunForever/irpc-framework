@@ -10,6 +10,7 @@ import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.event.IRpcNodeChangeEvent;
 import org.idea.irpc.framework.core.common.event.IRpcUpdateEvent;
 import org.idea.irpc.framework.core.common.event.data.URLChangeWrapper;
+import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.interfaces.DataService;
@@ -107,10 +108,12 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         //监听是否有新的服务注册
         String servicePath = url.getParameters().get("servicePath");
         String newServerNodePath = ROOT + "/" + servicePath;
-        watchChildNodeData(newServerNodePath);
+        //订阅节点地址为：/irpc/com.sise.test.UserService/provider
+        this.watchChildNodeData(newServerNodePath);
         String providerIpStrJson = url.getParameters().get("providerIps");
         List<String> providerIpList = JSON.parseObject(providerIpStrJson, List.class);
         for (String providerIp : providerIpList) {
+            //启动环节会触发订阅订阅节点详情地址为：/irpc/com.sise.test.UserService/provider/192.11.11.101:9090
             this.watchNodeDataChange(ROOT + "/" + servicePath + "/" + providerIp);
         }
     }
@@ -122,10 +125,10 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
      */
     public void watchNodeDataChange(String newServerNodePath) {
         zkClient.watchNodeData(newServerNodePath, new Watcher() {
-
             @Override
             public void process(WatchedEvent watchedEvent) {
                 String path = watchedEvent.getPath();
+                System.out.println("[watchNodeDataChange] 监听到zk节点下的" + path + "节点数据发生变更");
                 String nodeData = zkClient.getNodeData(path);
                 ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(nodeData);
                 IRpcEvent iRpcEvent = new IRpcNodeChangeEvent(providerNodeInfo);
@@ -139,15 +142,29 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                String path = watchedEvent.getPath();
-                List<String> childrenDataList = zkClient.getChildrenData(path);
+                String servicePath = watchedEvent.getPath();
+                System.out.println("收到子节点" + servicePath + "数据变化");
+                List<String> childrenDataList = zkClient.getChildrenData(servicePath);
+                if(CommonUtils.isEmptyList(childrenDataList)){
+                    watchChildNodeData(servicePath);
+                    return;
+                }
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
+                Map<String, String> nodeDetailInfoMap = new HashMap<>();
+                for (String providerAddress : childrenDataList) {
+                    String nodeDetailInfo = zkClient.getNodeData(servicePath + "/" + providerAddress);
+                    nodeDetailInfoMap.put(providerAddress, nodeDetailInfo);
+                }
+                urlChangeWrapper.setNodeDataUrl(nodeDetailInfoMap);
                 urlChangeWrapper.setProviderUrl(childrenDataList);
-                urlChangeWrapper.setServiceName(path.split("/")[2]);
+                urlChangeWrapper.setServiceName(servicePath.split("/")[2]);
                 IRpcEvent iRpcEvent = new IRpcUpdateEvent(urlChangeWrapper);
                 IRpcListenerLoader.sendEvent(iRpcEvent);
-                //收到回调之后在注册一次监听，这样能保证一直都收到消息
-                watchChildNodeData(path);
+                //收到回调之后再注册一次监听，这样能保证一直都收到消息
+                watchChildNodeData(servicePath);
+                for (String providerAddress : childrenDataList) {
+                    watchNodeDataChange( servicePath + "/" + providerAddress);
+                }
             }
         });
     }

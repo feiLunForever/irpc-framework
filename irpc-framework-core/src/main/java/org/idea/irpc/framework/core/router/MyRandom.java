@@ -13,14 +13,14 @@ public class MyRandom {
     private long last;
 
     public MyRandom(int end) {
-        this.seed = System.currentTimeMillis();
+        this.seed = System.nanoTime();
         this.mod = end;
 
     }
 
     public long randomCount() {
         if (last == 0) {
-            last = (int) (System.currentTimeMillis() % mod);
+            last = (int) (System.nanoTime() % mod);
         }
         long n1 = (last * seed + 11) % mod;
         last = n1;
@@ -28,11 +28,10 @@ public class MyRandom {
     }
 
     public static void main(String[] args) {
-        MyRandom myRandom = new MyRandom(13);
+        MyRandom myRandom = new MyRandom(15);
         for (int i = 0; i < 100; i++) {
-//            long result = myRandom.randomCount();
-//            System.out.println(result);
-            System.out.println(System.nanoTime());
+            long result = myRandom.randomCount();
+            System.out.print(result + " ");
         }
     }
 }

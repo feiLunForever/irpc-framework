@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.common.event.data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author linhao
@@ -11,6 +12,17 @@ public class URLChangeWrapper {
     private String serviceName;
 
     private List<String> providerUrl;
+
+    //记录每个ip下边的url详细信息，包括权重，分组等
+    private Map<String,String> nodeDataUrl;
+
+    public Map<String, String> getNodeDataUrl() {
+        return nodeDataUrl;
+    }
+
+    public void setNodeDataUrl(Map<String, String> nodeDataUrl) {
+        this.nodeDataUrl = nodeDataUrl;
+    }
 
     public String getServiceName() {
         return serviceName;
