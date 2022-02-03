@@ -3,8 +3,6 @@ package org.idea.irpc.framework.core.registy.zookeeper;
 import com.alibaba.fastjson.JSON;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.proto.WatcherEvent;
-import org.idea.irpc.framework.core.common.config.ClientConfig;
 import org.idea.irpc.framework.core.common.event.IRpcEvent;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.event.IRpcNodeChangeEvent;
@@ -13,13 +11,14 @@ import org.idea.irpc.framework.core.common.event.data.URLChangeWrapper;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
-import org.idea.irpc.framework.interfaces.DataService;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.CLIENT_CONFIG;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.IS_STARTED;
+import static org.idea.irpc.framework.core.common.cache.CommonServerCache.SERVER_CONFIG;
 
 /**
  * @Author linhao
@@ -45,6 +44,11 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     private String getConsumerPath(URL url) {
         return ROOT + "/" + url.getServiceName() + "/consumer/" + url.getApplicationName() + ":" + url.getParameters().get("host") + ":";
+    }
+
+    public ZookeeperRegister() {
+        String registryAddr = CLIENT_CONFIG!= null ? CLIENT_CONFIG.getRegisterAddr() : SERVER_CONFIG.getRegisterAddr();
+        this.zkClient = new CuratorZookeeperClient(registryAddr);
     }
 
     public ZookeeperRegister(String address) {
@@ -86,7 +90,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     @Override
     public void unRegister(URL url) {
-        if(!IS_STARTED){
+        if (!IS_STARTED) {
             return;
         }
         zkClient.deleteNode(getProviderPath(url));
@@ -150,7 +154,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 String servicePath = watchedEvent.getPath();
                 System.out.println("收到子节点" + servicePath + "数据变化");
                 List<String> childrenDataList = zkClient.getChildrenData(servicePath);
-                if(CommonUtils.isEmptyList(childrenDataList)){
+                if (CommonUtils.isEmptyList(childrenDataList)) {
                     watchChildNodeData(servicePath);
                     return;
                 }
@@ -168,7 +172,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 //收到回调之后再注册一次监听，这样能保证一直都收到消息
                 watchChildNodeData(servicePath);
                 for (String providerAddress : childrenDataList) {
-                    watchNodeDataChange( servicePath + "/" + providerAddress);
+                    watchNodeDataChange(servicePath + "/" + providerAddress);
                 }
             }
         });

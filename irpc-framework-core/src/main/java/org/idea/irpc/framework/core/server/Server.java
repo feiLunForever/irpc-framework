@@ -13,27 +13,19 @@ import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
-import org.idea.irpc.framework.core.filter.IClientFilter;
 import org.idea.irpc.framework.core.filter.IServerFilter;
 import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
-import org.idea.irpc.framework.core.filter.server.ServerLogFilterImpl;
-import org.idea.irpc.framework.core.filter.server.ServerTokenFilterImpl;
+import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
-import org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
-import org.idea.irpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
-import org.idea.irpc.framework.core.serialize.hessian.HessianSerializeFactory;
-import org.idea.irpc.framework.core.serialize.jdk.JdkSerializeFactory;
-import org.idea.irpc.framework.core.serialize.kryo.KryoSerializeFactory;
-
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
-import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
-import static org.idea.irpc.framework.core.common.constants.RpcConstants.KRYO_SERIALIZE_TYPE;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CACHE;
 
 /**
@@ -124,7 +116,13 @@ public class Server {
             throw new RuntimeException("service must only had one interfaces!");
         }
         if (REGISTRY_SERVICE == null) {
-            REGISTRY_SERVICE = new ZookeeperRegister(serverConfig.getRegisterAddr());
+            try {
+                EXTENSION_LOADER.loadExtension(RegistryService.class);
+                Map<String, Object> objMap = EXTENSION_LOADER_CACHE.get(RegistryService.class.getName());
+                REGISTRY_SERVICE = (AbstractRegister) objMap.get(serverConfig.getRegisterType());
+            } catch (Exception e) {
+                throw new RuntimeException("registryServiceType unKnow,error is ", e);
+            }
         }
         //默认选择该对象的第一个实现接口
         Class interfaceClass = classes[0];

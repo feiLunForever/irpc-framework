@@ -10,6 +10,9 @@ import org.idea.irpc.framework.core.proxy.ProxyFactory;
  */
 public class JavassistProxyFactory implements ProxyFactory {
 
+    public JavassistProxyFactory() {
+    }
+
     @Override
     public <T> T getProxy(RpcReferenceWrapper rpcReferenceWrapper) throws Throwable {
         return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),

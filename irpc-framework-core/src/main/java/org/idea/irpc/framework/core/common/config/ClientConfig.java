@@ -10,6 +10,8 @@ public class ClientConfig {
 
     private String registerAddr;
 
+    private String registerType;
+
     /**
      * 代理类型 example: jdk,javassist
      */
@@ -63,5 +65,13 @@ public class ClientConfig {
 
     public void setRouterStrategy(String routerStrategy) {
         this.routerStrategy = routerStrategy;
+    }
+
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    public void setRegisterType(String registerType) {
+        this.registerType = registerType;
     }
 }

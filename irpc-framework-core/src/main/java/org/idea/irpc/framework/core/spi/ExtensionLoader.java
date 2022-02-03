@@ -24,6 +24,8 @@ public class ExtensionLoader {
 
     public static Map<String, LinkedHashMap<String, Object>> EXTENSION_LOADER_CACHE = new ConcurrentHashMap<>();
 
+    public static Map<String, LinkedHashMap<String, Class>> EXTENSION_LOADER_CLASS_CACHE = new ConcurrentHashMap<>();
+
     public void loadExtension(Class clazz) throws IOException, IllegalAccessException, InstantiationException, ClassNotFoundException {
         if (clazz == null) {
             throw new IllegalArgumentException("class is null!");
@@ -39,6 +41,7 @@ public class ExtensionLoader {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String line;
             LinkedHashMap<String, Object> objectMap = new LinkedHashMap<>();
+            LinkedHashMap<String, Class> classMap = new LinkedHashMap<>();
             while ((line = bufferedReader.readLine()) != null) {
                 if (line.startsWith("#")) {
                     continue;
@@ -48,8 +51,10 @@ public class ExtensionLoader {
                 String interfaceName = lineArr[1];
                 Object object = newInstanceFromExtensionLoaderCache(interfaceName);
                 objectMap.put(implClassName, object);
+                classMap.put(implClassName, Class.forName(interfaceName));
             }
             EXTENSION_LOADER_CACHE.put(clazz.getName(), objectMap);
+            EXTENSION_LOADER_CLASS_CACHE.put(clazz.getName(), classMap);
         }
     }
 
@@ -64,7 +69,6 @@ public class ExtensionLoader {
         ExtensionLoader extensionLoader = new ExtensionLoader();
         extensionLoader.loadExtension(IClientFilter.class);
         extensionLoader.loadExtension(IServerFilter.class);
-
     }
 
 }
