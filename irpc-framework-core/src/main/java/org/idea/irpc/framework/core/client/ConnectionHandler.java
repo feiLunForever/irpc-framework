@@ -77,6 +77,7 @@ public class ConnectionHandler {
 
     /**
      * 构建ChannelFuture
+     *
      * @param ip
      * @param port
      * @return
@@ -107,6 +108,7 @@ public class ConnectionHandler {
         }
     }
 
+
     /**
      * 默认走随机策略获取ChannelFuture
      *
@@ -115,14 +117,14 @@ public class ConnectionHandler {
      */
     public static ChannelFuture getChannelFuture(RpcInvocation rpcInvocation) {
         String providerServiceName = rpcInvocation.getTargetServiceName();
-        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        if (CommonUtils.isEmptyList(channelFutureWrappers)) {
+        ChannelFutureWrapper[] channelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
+        if (channelFutureWrappers == null || channelFutureWrappers.length == 0) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
-        CLIENT_FILTER_CHAIN.doFilter(channelFutureWrappers,rpcInvocation);
+        CLIENT_FILTER_CHAIN.doFilter(Arrays.asList(channelFutureWrappers),rpcInvocation);
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);
-        selector.setChannelFutureWrappers(CommonUtils.convertFromList(channelFutureWrappers));
+        selector.setChannelFutureWrappers(channelFutureWrappers);
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }
