@@ -51,7 +51,7 @@ public class ConnectionHandler {
             throw new RuntimeException("bootstrap can not be null");
         }
         //格式错误类型的信息
-        if(!providerIp.contains(":")){
+        if (!providerIp.contains(":")) {
             return;
         }
         String[] providerAddress = providerIp.split(":");
@@ -83,12 +83,13 @@ public class ConnectionHandler {
 
     /**
      * 构建ChannelFuture
+     *
      * @param ip
      * @param port
      * @return
      * @throws InterruptedException
      */
-    public static ChannelFuture createChannelFuture(String ip,Integer port) throws InterruptedException {
+    public static ChannelFuture createChannelFuture(String ip, Integer port) throws InterruptedException {
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         return channelFuture;
     }
@@ -120,13 +121,13 @@ public class ConnectionHandler {
      * @return
      */
     public static ChannelFuture getChannelFuture(String providerServiceName) {
-        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        if (CommonUtils.isEmptyList(channelFutureWrappers)) {
+        ChannelFutureWrapper[] channelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
+        if (channelFutureWrappers == null || channelFutureWrappers.length == 0) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);
-        selector.setChannelFutureWrappers(CommonUtils.convertFromList(channelFutureWrappers));
+        selector.setChannelFutureWrappers(channelFutureWrappers);
         //todo 随机获取
         ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
