@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.idea.irpc.framework.core.common.cache.CommonServerCache.IS_STARTED;
+
 /**
  * @Author linhao
  * @Date created in 4:44 下午 2021/12/11
@@ -84,6 +86,9 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     @Override
     public void unRegister(URL url) {
+        if(!IS_STARTED){
+            return;
+        }
         zkClient.deleteNode(getProviderPath(url));
         super.unRegister(url);
     }

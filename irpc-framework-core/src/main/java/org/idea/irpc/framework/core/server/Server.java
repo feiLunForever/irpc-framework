@@ -82,6 +82,7 @@ public class Server {
         });
         this.batchExportUrl();
         bootstrap.bind(serverConfig.getServerPort()).sync();
+        IS_STARTED = true;
     }
 
     public void initServerConfig() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
