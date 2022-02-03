@@ -45,7 +45,7 @@ public class ConnectionHandler {
             throw new RuntimeException("bootstrap can not be null");
         }
         //格式错误类型的信息
-        if(!providerIp.contains(":")){
+        if (!providerIp.contains(":")) {
             return;
         }
         String[] providerAddress = providerIp.split(":");
@@ -82,7 +82,7 @@ public class ConnectionHandler {
      * @return
      * @throws InterruptedException
      */
-    public static ChannelFuture createChannelFuture(String ip,Integer port) throws InterruptedException {
+    public static ChannelFuture createChannelFuture(String ip, Integer port) throws InterruptedException {
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         return channelFuture;
     }
