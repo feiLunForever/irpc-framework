@@ -30,6 +30,10 @@ public class RandomRouterImpl implements IRouter {
             arr[i] = channelFutureWrappers.get(result[i]);
         }
         SERVICE_ROUTER_MAP.put(selector.getProviderServiceName(), arr);
+        URL url = new URL();
+        url.setServiceName(selector.getProviderServiceName());
+        //更新权重
+        IROUTER.updateWeight(url);
     }
 
     @Override

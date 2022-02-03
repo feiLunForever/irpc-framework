@@ -8,6 +8,8 @@ import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.ProviderNodeInfo;
+import org.idea.irpc.framework.core.router.IRouter;
+import org.idea.irpc.framework.core.router.RotateRouterImpl;
 import org.idea.irpc.framework.core.router.Selector;
 
 import java.util.*;
@@ -45,7 +47,7 @@ public class ConnectionHandler {
             throw new RuntimeException("bootstrap can not be null");
         }
         //格式错误类型的信息
-        if(!providerIp.contains(":")){
+        if (!providerIp.contains(":")) {
             return;
         }
         String[] providerAddress = providerIp.split(":");
@@ -77,12 +79,13 @@ public class ConnectionHandler {
 
     /**
      * 构建ChannelFuture
+     *
      * @param ip
      * @param port
      * @return
      * @throws InterruptedException
      */
-    public static ChannelFuture createChannelFuture(String ip,Integer port) throws InterruptedException {
+    public static ChannelFuture createChannelFuture(String ip, Integer port) throws InterruptedException {
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         return channelFuture;
     }
