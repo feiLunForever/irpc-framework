@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
-import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CACHE;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -101,8 +100,9 @@ public class Client {
         if (ABSTRACT_REGISTER == null) {
             try {
                 EXTENSION_LOADER.loadExtension(RegistryService.class);
-                Map<String, Object> objMap = EXTENSION_LOADER_CACHE.get(RegistryService.class.getName());
-                ABSTRACT_REGISTER = (AbstractRegister) objMap.get(clientConfig.getRegisterType());
+                Map<String, Class> registerMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
+                Class registerClass =  registerMap.get(clientConfig.getRegisterType());
+                ABSTRACT_REGISTER = (AbstractRegister) registerClass.newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("registryServiceType unKnow,error is ", e);
             }
@@ -177,30 +177,33 @@ public class Client {
         //初始化路由策略
         EXTENSION_LOADER.loadExtension(IRouter.class);
         String routerStrategy = clientConfig.getRouterStrategy();
-        LinkedHashMap<String, Object> iRouterMap = EXTENSION_LOADER_CACHE.get(IRouter.class.getName());
-        IRouter iRouter = (IRouter) iRouterMap.get(routerStrategy);
-        if (iRouter == null) {
-            throw new RuntimeException("no match routerStrategy for" + routerStrategy);
+        LinkedHashMap<String, Class> iRouterMap = EXTENSION_LOADER_CLASS_CACHE.get(IRouter.class.getName());
+        Class iRouterClass = iRouterMap.get(routerStrategy);
+        if (iRouterClass == null) {
+            throw new RuntimeException("no match routerStrategy for " + routerStrategy);
         }
-        IROUTER = iRouter;
+        IROUTER = (IRouter) iRouterClass.newInstance();
 
         //初始化序列化框架
         EXTENSION_LOADER.loadExtension(SerializeFactory.class);
         String clientSerialize = clientConfig.getClientSerialize();
-        LinkedHashMap<String, Object> serializeMap = EXTENSION_LOADER_CACHE.get(SerializeFactory.class.getName());
-        SerializeFactory serializeFactory = (SerializeFactory) serializeMap.get(clientSerialize);
-        if (serializeFactory == null) {
+        LinkedHashMap<String, Class> serializeMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
+        Class serializeFactoryClass = serializeMap.get(clientSerialize);
+        if (serializeFactoryClass == null) {
             throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
-        CLIENT_SERIALIZE_FACTORY = serializeFactory;
+        CLIENT_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
 
         //初始化过滤链
         EXTENSION_LOADER.loadExtension(IClientFilter.class);
         ClientFilterChain clientFilterChain = new ClientFilterChain();
-        LinkedHashMap<String, Object> iClientMap = EXTENSION_LOADER_CACHE.get(IClientFilter.class.getName());
+        LinkedHashMap<String, Class> iClientMap = EXTENSION_LOADER_CLASS_CACHE.get(IClientFilter.class.getName());
         for (String implClassName : iClientMap.keySet()) {
-            IClientFilter iClientFilter = (IClientFilter) iClientMap.get(implClassName);
-            clientFilterChain.addClientFilter(iClientFilter);
+            Class iClientFilterClass = iClientMap.get(implClassName);
+            if (iClientFilterClass == null) {
+                throw new RuntimeException("no match iClientFilter for " + iClientFilterClass);
+            }
+            clientFilterChain.addClientFilter((IClientFilter) iClientFilterClass.newInstance());
         }
         CLIENT_FILTER_CHAIN = clientFilterChain;
     }

@@ -21,6 +21,6 @@ public class DemoInvocation implements InvocationHandler {
 
     public static void main(String[] args) throws Throwable {
         Method[] methods = DataService.class.getDeclaredMethods();
-        Demo$Proxy demo$Proxy = new Demo$Proxy(new DemoInvocation());
+//        Demo$Proxy demo$Proxy = new Demo$Proxy(new DemoInvocation());
     }
 }

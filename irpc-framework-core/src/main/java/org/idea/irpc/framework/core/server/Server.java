@@ -26,7 +26,7 @@ import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
-import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CACHE;
+import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
  * @Author linhao
@@ -84,19 +84,23 @@ public class Server {
         //序列化技术初始化
         String serverSerialize = serverConfig.getServerSerialize();
         EXTENSION_LOADER.loadExtension(SerializeFactory.class);
-        LinkedHashMap<String, Object> serializeFactoryMap = EXTENSION_LOADER_CACHE.get(SerializeFactory.class.getName());
-        SerializeFactory serializeFactory = (SerializeFactory) serializeFactoryMap.get(serverSerialize);
-        if (serializeFactory == null) {
+        LinkedHashMap<String, Class> serializeFactoryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
+        Class serializeFactoryClass = serializeFactoryClassMap.get(serverSerialize);
+        if (serializeFactoryClass == null) {
             throw new RuntimeException("no match serialize type for" + serverSerialize);
         }
-        SERVER_SERIALIZE_FACTORY = serializeFactory;
+
+        SERVER_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
         //过滤链技术初始化
         EXTENSION_LOADER.loadExtension(IServerFilter.class);
-        LinkedHashMap<String, Object> iServerFilterMap = EXTENSION_LOADER_CACHE.get(IServerFilter.class.getName());
+        LinkedHashMap<String, Class> iServerFilterMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
         ServerFilterChain serverFilterChain = new ServerFilterChain();
         for (String iServerFilterKey : iServerFilterMap.keySet()) {
-            IServerFilter iServerFilter = (IServerFilter) iServerFilterMap.get(iServerFilterKey);
-            serverFilterChain.addServerFilter(iServerFilter);
+            Class iServerFilter = iServerFilterMap.get(iServerFilterKey);
+            if(iServerFilter==null){
+                throw new RuntimeException("no match iServerFilter type for" + iServerFilterKey);
+            }
+            serverFilterChain.addServerFilter((IServerFilter) iServerFilter.newInstance());
         }
         SERVER_FILTER_CHAIN = serverFilterChain;
     }
@@ -118,8 +122,9 @@ public class Server {
         if (REGISTRY_SERVICE == null) {
             try {
                 EXTENSION_LOADER.loadExtension(RegistryService.class);
-                Map<String, Object> objMap = EXTENSION_LOADER_CACHE.get(RegistryService.class.getName());
-                REGISTRY_SERVICE = (AbstractRegister) objMap.get(serverConfig.getRegisterType());
+                Map<String, Class> registryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
+                Class registryClass = registryClassMap.get(serverConfig.getRegisterType());
+                REGISTRY_SERVICE = (AbstractRegister) registryClass.newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("registryServiceType unKnow,error is ", e);
             }
