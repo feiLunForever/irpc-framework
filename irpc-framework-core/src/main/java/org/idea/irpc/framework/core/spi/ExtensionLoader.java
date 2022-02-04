@@ -45,7 +45,12 @@ public class ExtensionLoader {
                 classMap.put(implClassName, Class.forName(interfaceName));
             }
             //只会触发class文件的加载，而不会触发对象的实例化
-            EXTENSION_LOADER_CLASS_CACHE.put(clazz.getName(), classMap);
+            if(EXTENSION_LOADER_CLASS_CACHE.containsKey(clazz.getName())){
+                //支持开发者自定义配置
+                EXTENSION_LOADER_CLASS_CACHE.get(clazz.getName()).putAll(classMap);
+            } else {
+                EXTENSION_LOADER_CLASS_CACHE.put(clazz.getName(), classMap);
+            }
         }
     }
 

@@ -1,21 +1,22 @@
-package org.idea.irpc.framework.core.router;
+package org.idea.irpc.framework.consumer.spi.router;
 
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
 import org.idea.irpc.framework.core.registy.URL;
+import org.idea.irpc.framework.core.router.IRouter;
+import org.idea.irpc.framework.core.router.Selector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SERVICE_ROUTER_MAP;
 
 /**
- * 随机筛选
- *
  * @Author linhao
- * @Date created in 8:26 下午 2022/1/5
+ * @Date created in 4:39 下午 2022/2/4
  */
-public class RandomRouterImpl implements IRouter {
+public class RandomRouterImplV2 implements IRouter {
 
 
     @Override
@@ -38,6 +39,7 @@ public class RandomRouterImpl implements IRouter {
 
     @Override
     public ChannelFutureWrapper select(Selector selector) {
+        System.out.println("第二版本的负载均衡");
         return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector.getChannelFutureWrappers());
     }
 

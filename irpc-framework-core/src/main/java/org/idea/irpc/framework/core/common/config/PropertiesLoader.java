@@ -3,8 +3,11 @@ package org.idea.irpc.framework.core.common.config;
 import io.netty.util.internal.StringUtil;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -21,16 +24,16 @@ public class PropertiesLoader {
 
     private static Map<String, String> propertiesMap = new HashMap<>();
 
-    private static String DEFAULT_PROPERTIES_FILE = "/Users/linhao/IdeaProjects/my-github/irpc-framework/irpc-framework-core/src/main/resources/irpc.properties";
+    private static String DEFAULT_PROPERTIES_FILE = "irpc.properties";
 
-    //todo 如果这里直接使用static修饰是否可以？
     public static void loadConfiguration() throws IOException {
         if (properties != null) {
             return;
         }
         properties = new Properties();
-        FileInputStream in = null;
-        in = new FileInputStream(DEFAULT_PROPERTIES_FILE);
+//        FileInputStream in = null;
+//        in = new FileInputStream(new File(DEFAULT_PROPERTIES_FILE));
+        InputStream in = PropertiesLoader.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES_FILE);
         properties.load(in);
     }
 

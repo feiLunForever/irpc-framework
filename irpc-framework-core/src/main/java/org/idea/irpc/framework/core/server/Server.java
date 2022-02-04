@@ -87,20 +87,20 @@ public class Server {
         LinkedHashMap<String, Class> serializeFactoryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
         Class serializeFactoryClass = serializeFactoryClassMap.get(serverSerialize);
         if (serializeFactoryClass == null) {
-            throw new RuntimeException("no match serialize type for" + serverSerialize);
+            throw new RuntimeException("no match serialize type for " + serverSerialize);
         }
 
         SERVER_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
         //过滤链技术初始化
         EXTENSION_LOADER.loadExtension(IServerFilter.class);
-        LinkedHashMap<String, Class> iServerFilterMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
+        LinkedHashMap<String, Class> iServerFilterClassMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
         ServerFilterChain serverFilterChain = new ServerFilterChain();
-        for (String iServerFilterKey : iServerFilterMap.keySet()) {
-            Class iServerFilter = iServerFilterMap.get(iServerFilterKey);
-            if(iServerFilter==null){
-                throw new RuntimeException("no match iServerFilter type for" + iServerFilterKey);
+        for (String iServerFilterKey : iServerFilterClassMap.keySet()) {
+            Class iServerFilterClass = iServerFilterClassMap.get(iServerFilterKey);
+            if(iServerFilterClass==null){
+                throw new RuntimeException("no match iServerFilter type for " + iServerFilterKey);
             }
-            serverFilterChain.addServerFilter((IServerFilter) iServerFilter.newInstance());
+            serverFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
         }
         SERVER_FILTER_CHAIN = serverFilterChain;
     }
