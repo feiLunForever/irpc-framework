@@ -1,16 +1,22 @@
 package org.idea.irpc.framework.core.common.cache;
 
 import io.netty.util.internal.ConcurrentSet;
+import org.idea.irpc.framework.core.common.RpcProtocol;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
+import org.idea.irpc.framework.core.dispatcher.ServerChannelDispatcher;
 import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
 import org.idea.irpc.framework.core.server.ServiceWrapper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @Author linhao
@@ -26,4 +32,5 @@ public class CommonServerCache {
     public static ServerFilterChain SERVER_FILTER_CHAIN;
     public static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap<>();
     public static Boolean IS_STARTED = false;
+    public static ServerChannelDispatcher SERVER_CHANNEL_DISPATCHER = new ServerChannelDispatcher();
 }

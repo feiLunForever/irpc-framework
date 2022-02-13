@@ -27,6 +27,19 @@ public class ClientConfig {
      */
     private String clientSerialize;
 
+    /**
+     * 客户端发数据的线程数
+     */
+    private Integer timeOut;
+
+    public Integer getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(Integer timeOut) {
+        this.timeOut = timeOut;
+    }
+
     public String getClientSerialize() {
         return clientSerialize;
     }

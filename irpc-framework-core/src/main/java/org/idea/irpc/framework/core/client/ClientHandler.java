@@ -1,11 +1,8 @@
 package org.idea.irpc.framework.core.client;
 
-import com.alibaba.fastjson.JSON;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
@@ -24,6 +21,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
         byte[] reqContent = rpcProtocol.getContent();
         RpcInvocation rpcInvocation = CLIENT_SERIALIZE_FACTORY.deserialize(reqContent,RpcInvocation.class);
+        //如果是单纯异步模式的话，响应Map集合中不会存在映射值
+        Object r = rpcInvocation.getAttachments().get("async");
+        if(r!=null && Boolean.valueOf(String.valueOf(r))){
+            ReferenceCountUtil.release(msg);
+            return;
+        }
         if(!RESP_MAP.containsKey(rpcInvocation.getUuid())){
             throw new IllegalArgumentException("server response is error!");
         }
@@ -36,6 +39,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         super.exceptionCaught(ctx, cause);
         Channel channel = ctx.channel();
         if(channel.isActive()){
+            System.err.println(cause);
             ctx.close();
         }
     }
