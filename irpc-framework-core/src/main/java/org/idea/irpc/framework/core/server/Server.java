@@ -53,7 +53,7 @@ public class Server {
 
     public void startApplication() throws InterruptedException {
         bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup(3);
+        workerGroup = new NioEventLoopGroup(2);
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioServerSocketChannel.class);

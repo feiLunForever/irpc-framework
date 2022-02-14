@@ -27,7 +27,7 @@ public class ConsumerDemo {
         rpcReferenceWrapper.setGroup("dev");
         rpcReferenceWrapper.setServiceToken("token-a");
         rpcReferenceWrapper.setTimeOut(1000);
-//        rpcReferenceWrapper.setAsync(true);
+        rpcReferenceWrapper.setAsync(true);
         //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         client.doSubscribeService(DataService.class);

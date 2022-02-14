@@ -4,13 +4,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
 
@@ -24,7 +19,7 @@ import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws InvocationTargetException, IllegalAccessException {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ServerChannelReadData serverChannelReadData = new ServerChannelReadData();
         serverChannelReadData.setRpcProtocol((RpcProtocol) msg);
         serverChannelReadData.setChannelHandlerContext(ctx);
