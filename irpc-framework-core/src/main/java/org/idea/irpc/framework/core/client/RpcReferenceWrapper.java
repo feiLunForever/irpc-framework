@@ -25,7 +25,7 @@ public class RpcReferenceWrapper<T> {
 
     public boolean isAsync() {
         Object r = attatchments.get("async");
-        if (r == null) {
+        if (r == null || r.equals(false)) {
             return false;
         }
         return Boolean.valueOf(true);

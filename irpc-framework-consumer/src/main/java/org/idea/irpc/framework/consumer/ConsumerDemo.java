@@ -26,8 +26,10 @@ public class ConsumerDemo {
         rpcReferenceWrapper.setAimClass(DataService.class);
         rpcReferenceWrapper.setGroup("dev");
         rpcReferenceWrapper.setServiceToken("token-a");
-        rpcReferenceWrapper.setTimeOut(1000);
-        rpcReferenceWrapper.setAsync(true);
+        rpcReferenceWrapper.setTimeOut(3000);
+//        rpcReferenceWrapper.setAsync(true);
+        //如果要使用future，这里要切换为false
+        rpcReferenceWrapper.setAsync(false);
         //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         client.doSubscribeService(DataService.class);
@@ -37,7 +39,7 @@ public class ConsumerDemo {
         client.startClient();
         ExecutorService executorService= Executors.newFixedThreadPool(1);
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 60000; i++) {
             try {
                 FutureTask<String> futureTask = new FutureTask<String>(new Callable<String>() {
                     @Override
@@ -52,8 +54,10 @@ public class ConsumerDemo {
                 String result = futureTask.get();
                 System.out.println(result);
             } catch (Exception e) {
+                System.out.println(i);
                 e.printStackTrace();
             }
         }
+        System.out.println("结束调用60000次");
     }
 }
