@@ -31,4 +31,15 @@ public class DataServiceImpl implements DataService {
         arrayList.add("idea3");
         return arrayList;
     }
+
+    @Override
+    public void testError() {
+        System.out.println(1/0);
+    }
+
+    @Override
+    public String testErrorV2() {
+        System.out.println(1/0);
+        return "error";
+    }
 }

@@ -23,6 +23,16 @@ public class RpcReferenceWrapper<T> {
         this.aimClass = aimClass;
     }
 
+    //失败重试
+    public int getRetry(){
+        return (int) attatchments.get("retry");
+    }
+
+    public boolean setRetry(int retry){
+        this.attatchments.put("retry",retry);
+        return true;
+    }
+
     public boolean isAsync() {
         Object r = attatchments.get("async");
         if (r == null || r.equals(false)) {

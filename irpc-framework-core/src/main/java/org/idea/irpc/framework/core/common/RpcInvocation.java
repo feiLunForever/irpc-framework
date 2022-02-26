@@ -22,6 +22,16 @@ public class RpcInvocation implements Serializable {
 
     private Object response;
 
+    private Exception e;
+
+    public Exception getE() {
+        return e;
+    }
+
+    public void setE(Exception e) {
+        this.e = e;
+    }
+
     private Map<String, Object> attachments = new ConcurrentHashMap<>();
 
     public Map<String, Object> getAttachments() {
@@ -81,6 +91,7 @@ public class RpcInvocation implements Serializable {
                 ", args=" + Arrays.toString(args) +
                 ", uuid='" + uuid + '\'' +
                 ", response=" + response +
+                ", e=" + e +
                 ", attachments=" + attachments +
                 '}';
     }

@@ -27,7 +27,8 @@ public class ConsumerDemo {
         rpcReferenceWrapper.setGroup("dev");
         rpcReferenceWrapper.setServiceToken("token-a");
         rpcReferenceWrapper.setTimeOut(3000);
-//        rpcReferenceWrapper.setAsync(true);
+        //失败重试次数
+        rpcReferenceWrapper.setRetry(2);
         //如果要使用future，这里要切换为false
         rpcReferenceWrapper.setAsync(false);
         //在初始化之前必须要设置对应的上下文
@@ -37,27 +38,7 @@ public class ConsumerDemo {
         ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
-        ExecutorService executorService= Executors.newFixedThreadPool(1);
-
-        for (int i = 0; i < 60000; i++) {
-            try {
-                FutureTask<String> futureTask = new FutureTask<String>(new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return dataService.sendData("test");
-                    }
-                });
-                executorService.submit(futureTask);
-                List<String> resultList = dataService.getList();
-                System.out.println("result List is :" + resultList);
-                System.out.println("等待了一段时间后");
-                String result = futureTask.get();
-                System.out.println(result);
-            } catch (Exception e) {
-                System.out.println(i);
-                e.printStackTrace();
-            }
-        }
-        System.out.println("结束调用60000次");
+        dataService.testErrorV2();
+        System.out.println("结束调用");
     }
 }
