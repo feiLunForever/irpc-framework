@@ -41,5 +41,6 @@ public class CommonClientCache {
     public static ClientConfig CLIENT_CONFIG;
     public static ClientFilterChain CLIENT_FILTER_CHAIN;
     public static AbstractRegister ABSTRACT_REGISTER;
+    public static Map<String,String> TOLERANT_MAP;
     public static ExtensionLoader EXTENSION_LOADER = new ExtensionLoader();
 }

@@ -13,13 +13,7 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public String sendData(String body) {
-        System.out.println("begin");
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        System.out.println("这里是服务提供者，body is " + body );
+        System.out.println("这里是服务提供者，body is " + body);
         return "success";
     }
 
@@ -39,6 +33,12 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public String testErrorV2() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("调用测试");
         System.out.println(1/0);
         return "error";
     }

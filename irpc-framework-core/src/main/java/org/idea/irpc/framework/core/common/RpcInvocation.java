@@ -24,6 +24,26 @@ public class RpcInvocation implements Serializable {
 
     private Exception e;
 
+    private boolean isDemote;
+
+    private int retry;
+
+    public boolean isDemote() {
+        return isDemote;
+    }
+
+    public void setDemote(boolean demote) {
+        isDemote = demote;
+    }
+
+    public int getRetry() {
+        return retry;
+    }
+
+    public void setRetry(int retry) {
+        this.retry = retry;
+    }
+
     public Exception getE() {
         return e;
     }

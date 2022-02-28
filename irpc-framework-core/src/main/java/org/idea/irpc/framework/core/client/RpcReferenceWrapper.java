@@ -23,14 +23,28 @@ public class RpcReferenceWrapper<T> {
         this.aimClass = aimClass;
     }
 
-    //失败重试
-    public int getRetry(){
-        return (int) attatchments.get("retry");
+    /**
+     * 设置容错策略
+     *
+     * @param tolerant
+     */
+    public void setTolerant(String tolerant){
+        this.attatchments.put("tolerant",tolerant);
     }
 
-    public boolean setRetry(int retry){
+    /**
+     * 失败重试次数
+     */
+    public int getRetry(){
+        if(attatchments.get("retry")==null){
+            return 0;
+        }else {
+            return (int) attatchments.get("retry");
+        }
+    }
+
+    public void setRetry(int retry){
         this.attatchments.put("retry",retry);
-        return true;
     }
 
     public boolean isAsync() {

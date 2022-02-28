@@ -28,17 +28,17 @@ public class ConsumerDemo {
         rpcReferenceWrapper.setServiceToken("token-a");
         rpcReferenceWrapper.setTimeOut(3000);
         //失败重试次数
-        rpcReferenceWrapper.setRetry(2);
-        //如果要使用future，这里要切换为false
+        rpcReferenceWrapper.setRetry(0);
         rpcReferenceWrapper.setAsync(false);
-        //在初始化之前必须要设置对应的上下文
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
+        //订阅服务
         client.doSubscribeService(DataService.class);
 
         ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
-        dataService.testErrorV2();
+        String result = dataService.testErrorV2();
         System.out.println("结束调用");
+        System.out.println(result);
     }
 }
