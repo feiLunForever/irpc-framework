@@ -23,6 +23,7 @@ public class PropertiesBootstrap {
     public static final String CLIENT_DEFAULT_TIME_OUT = "irpc.client.default.timeout";
     public static final String SERVER_BIZ_THREAD_NUMS = "irpc.server.biz.thread.nums";
     public static final String SERVER_QUEUE_SIZE = "irpc.server.queue.size";
+    public static final String MAX_CONNECTION = "irpc.server.max.connection";
 
     public static ServerConfig loadServerConfigFromLocal() {
         try {
@@ -38,6 +39,7 @@ public class PropertiesBootstrap {
         serverConfig.setServerSerialize(PropertiesLoader.getPropertiesStrDefault(SERVER_SERIALIZE_TYPE,JDK_SERIALIZE_TYPE));
         serverConfig.setServerBizThreadNums(PropertiesLoader.getPropertiesIntegerDefault(SERVER_BIZ_THREAD_NUMS,DEFAULT_THREAD_NUMS));
         serverConfig.setServerQueueSize(PropertiesLoader.getPropertiesIntegerDefault(SERVER_QUEUE_SIZE,DEFAULT_QUEUE_SIZE));
+        serverConfig.setMaxConnections(PropertiesLoader.getPropertiesIntegerDefault(MAX_CONNECTION,MAX_CONNECTION_NUMS));
         return serverConfig;
     }
 

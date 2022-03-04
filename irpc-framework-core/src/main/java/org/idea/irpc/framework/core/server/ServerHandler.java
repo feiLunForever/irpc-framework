@@ -28,6 +28,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        //这里统一做异常捕获？
         cause.printStackTrace();
         Channel channel = ctx.channel();
         if (channel.isActive()) {

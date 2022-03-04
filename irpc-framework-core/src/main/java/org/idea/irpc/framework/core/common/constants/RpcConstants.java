@@ -29,4 +29,6 @@ public class RpcConstants {
     public static final Integer DEFAULT_THREAD_NUMS = 256;
 
     public static final Integer DEFAULT_QUEUE_SIZE = 512;
+
+    public static final Integer MAX_CONNECTION_NUMS = 1000;
 }
