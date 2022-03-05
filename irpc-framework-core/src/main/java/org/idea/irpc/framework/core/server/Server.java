@@ -1,12 +1,16 @@
 package org.idea.irpc.framework.core.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
 import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
@@ -19,6 +23,8 @@ import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.idea.irpc.framework.core.serialize.SerializeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -26,6 +32,7 @@ import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
+import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -33,6 +40,8 @@ import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_
  * @Date created in 8:12 上午 2021/11/29
  */
 public class Server {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     private static EventLoopGroup bossGroup = null;
 
@@ -67,9 +76,12 @@ public class Server {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 System.out.println("初始化provider过程");
+//                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+//                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192,delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 //这里面需要注意出现堵塞的情况发生，建议将核心业务内容分配给业务线程池处理
+//                ch.pipeline().addLast(new ServerHandler(SERVER_CONFIG.getMaxConnections()));
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
@@ -78,6 +90,7 @@ public class Server {
         SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
         IS_STARTED = true;
+        LOGGER.info("server is started!");
     }
 
     public void initServerConfig() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {

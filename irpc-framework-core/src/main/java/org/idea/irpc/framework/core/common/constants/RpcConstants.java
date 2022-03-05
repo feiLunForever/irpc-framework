@@ -31,4 +31,6 @@ public class RpcConstants {
     public static final Integer DEFAULT_QUEUE_SIZE = 512;
 
     public static final Integer MAX_CONNECTION_NUMS = 1000;
+
+    public static final String DEFAULT_DECODE_CHAR = "&irpc-end&";
 }

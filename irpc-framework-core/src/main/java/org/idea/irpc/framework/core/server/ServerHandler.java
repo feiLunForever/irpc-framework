@@ -4,8 +4,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
+import org.idea.irpc.framework.core.common.exception.IRpcException;
+import org.idea.irpc.framework.core.common.exception.MaxConnectionException;
 
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
 
@@ -17,6 +23,25 @@ import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
  */
 @ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
+
+    private Semaphore semaphore;
+
+//    public ServerHandler(int maxConnection) {
+//        this.semaphore = new Semaphore(maxConnection);
+//    }
+
+    public Semaphore getSemaphore() {
+        return semaphore;
+    }
+
+    /**
+     * 考虑到可以动态调整最大连接数
+     *
+     * @param semaphore
+     */
+    public void setSemaphore(Semaphore semaphore) {
+        this.semaphore = semaphore;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -30,9 +55,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         //这里统一做异常捕获？
         cause.printStackTrace();
-        Channel channel = ctx.channel();
-        if (channel.isActive()) {
-            ctx.close();
+        if (cause instanceof MaxConnectionException) {
+            MaxConnectionException maxConnectionException = (MaxConnectionException) cause;
+            RpcProtocol rpcProtocol = maxConnectionException.getRpcProtocol();
+            byte[] content = rpcProtocol.getContent();
+            RpcInvocation response = SERVER_SERIALIZE_FACTORY.deserialize(content,RpcInvocation.class);
+            response.setResponse("t");
+            response.setTargetMethod("");
+            response.setTargetServiceName("");
+            response.setArgs(null);
+            rpcProtocol.setContent(SERVER_SERIALIZE_FACTORY.serialize(response));
+            ctx.writeAndFlush(rpcProtocol);
         }
+//        Channel channel = ctx.channel();
+//        if (channel.isActive()) {
+//            ctx.close();
+//        }
     }
 }

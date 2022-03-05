@@ -24,7 +24,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out)  {
         if (byteBuf.readableBytes() >= BASE_LENGTH) {
-            if (byteBuf.readableBytes() > 4056) {
+            if (byteBuf.readableBytes() > 2046) {
                 byteBuf.skipBytes(byteBuf.readableBytes());
             }
             int beginReader;

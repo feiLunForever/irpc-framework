@@ -2,6 +2,8 @@ package org.idea.irpc.framework.core.dispatcher;
 
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
+import org.idea.irpc.framework.core.common.exception.IRpcException;
+import org.idea.irpc.framework.core.common.exception.MaxConnectionException;
 import org.idea.irpc.framework.core.server.ServerChannelReadData;
 
 import java.lang.reflect.Method;
@@ -32,16 +34,14 @@ public class ServerChannelDispatcher {
     }
 
     public void add(ServerChannelReadData serverChannelReadData) {
-        throw new RuntimeException("测试异常");
-//        if(connections.get() > SERVER_CONFIG.getMaxConnections()){
-//            //todo
-//            //这里最好直接往外抛出一个异常，让外界捕获到异常后返回给客户端
-//            return;
-//        } else {
-//            connections.incrementAndGet();
-//        }
-        //这里面加入限流策略
-//        RPC_DATA_QUEUE.add(serverChannelReadData);
+        if (connections.get() >= 0) {
+            //这里最好直接往外抛出一个异常，让外界捕获到异常后返回给客户端
+            throw new MaxConnectionException(serverChannelReadData.getRpcProtocol());
+        } else {
+            connections.incrementAndGet();
+        }
+        //这里面加入更细粒度的限流策略
+        RPC_DATA_QUEUE.add(serverChannelReadData);
     }
 
     class ServerJobCoreHandle implements Runnable {
@@ -70,12 +70,14 @@ public class ServerChannelDispatcher {
                                             } catch (Exception e) {
                                                 rpcInvocation.setE(e);
                                             }
+                                            connections.decrementAndGet();
                                         } else {
                                             try {
                                                 result = method.invoke(aimObject, rpcInvocation.getArgs());
                                             } catch (Exception e) {
                                                 rpcInvocation.setE(e);
                                             }
+                                            connections.decrementAndGet();
                                         }
                                         break;
                                     }
