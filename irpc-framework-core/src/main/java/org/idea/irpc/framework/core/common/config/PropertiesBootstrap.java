@@ -23,8 +23,15 @@ public class PropertiesBootstrap {
     public static final String CLIENT_DEFAULT_TIME_OUT = "irpc.client.default.timeout";
     public static final String SERVER_BIZ_THREAD_NUMS = "irpc.server.biz.thread.nums";
     public static final String SERVER_QUEUE_SIZE = "irpc.server.queue.size";
-    public static final String MAX_CONNECTION = "irpc.server.max.connection";
+    public static final String SERVER_MAX_CONNECTION = "irpc.server.max.connection";
+    public static final String SERVER_MAX_DATA_SIZE = "irpc.server.max.data.size";
+    public static final String CLIENT_MAX_DATA_SIZE = "irpc.client.max.data.size";
 
+    /**
+     * 加载服务端专属配置
+     *
+     * @return ServerConfig
+     */
     public static ServerConfig loadServerConfigFromLocal() {
         try {
             PropertiesLoader.loadConfiguration();
@@ -39,10 +46,16 @@ public class PropertiesBootstrap {
         serverConfig.setServerSerialize(PropertiesLoader.getPropertiesStrDefault(SERVER_SERIALIZE_TYPE,JDK_SERIALIZE_TYPE));
         serverConfig.setServerBizThreadNums(PropertiesLoader.getPropertiesIntegerDefault(SERVER_BIZ_THREAD_NUMS,DEFAULT_THREAD_NUMS));
         serverConfig.setServerQueueSize(PropertiesLoader.getPropertiesIntegerDefault(SERVER_QUEUE_SIZE,DEFAULT_QUEUE_SIZE));
-        serverConfig.setMaxConnections(PropertiesLoader.getPropertiesIntegerDefault(MAX_CONNECTION,MAX_CONNECTION_NUMS));
+        serverConfig.setMaxConnections(PropertiesLoader.getPropertiesIntegerDefault(SERVER_MAX_CONNECTION,DEFAULT_MAX_CONNECTION_NUMS));
+        serverConfig.setMaxServerRequestData(PropertiesLoader.getPropertiesIntegerDefault(SERVER_MAX_DATA_SIZE,SERVER_DEFAULT_MSG_LENGTH));
         return serverConfig;
     }
 
+    /**
+     * 加载客户端专属配置
+     *
+     * @return ClientConfig
+     */
     public static ClientConfig loadClientConfigFromLocal(){
         try {
             PropertiesLoader.loadConfiguration();
@@ -57,6 +70,7 @@ public class PropertiesBootstrap {
         clientConfig.setRouterStrategy(PropertiesLoader.getPropertiesStrDefault(ROUTER_TYPE,RANDOM_ROUTER_TYPE));
         clientConfig.setClientSerialize(PropertiesLoader.getPropertiesStrDefault(CLIENT_SERIALIZE_TYPE,JDK_SERIALIZE_TYPE));
         clientConfig.setTimeOut(PropertiesLoader.getPropertiesIntegerDefault(CLIENT_DEFAULT_TIME_OUT,DEFAULT_TIMEOUT));
+        clientConfig.setMaxServerRespDataSize(PropertiesLoader.getPropertiesIntegerDefault(CLIENT_MAX_DATA_SIZE,CLIENT_DEFAULT_MSG_LENGTH));
         return clientConfig;
     }
 

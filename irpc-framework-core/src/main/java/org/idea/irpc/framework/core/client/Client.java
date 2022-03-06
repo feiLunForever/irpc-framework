@@ -40,7 +40,6 @@ import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
-import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_MSG_LENGTH;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -50,8 +49,6 @@ import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_
 public class Client {
 
     private Logger logger = LoggerFactory.getLogger(Client.class);
-
-    public static EventLoopGroup clientGroup = new NioEventLoopGroup();
 
     private ClientConfig clientConfig;
 
@@ -80,7 +77,7 @@ public class Client {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
-                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(DEFAULT_MSG_LENGTH, delimiter));
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(clientConfig.getMaxServerRespDataSize(), delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ClientHandler());

@@ -30,7 +30,7 @@ public class ConsumerDemo {
         rpcReferenceWrapper.setTimeOut(3000);
         //失败重试次数
         rpcReferenceWrapper.setRetry(0);
-        rpcReferenceWrapper.setAsync(true);
+        rpcReferenceWrapper.setAsync(false);
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         //订阅服务
         client.doSubscribeService(DataService.class);

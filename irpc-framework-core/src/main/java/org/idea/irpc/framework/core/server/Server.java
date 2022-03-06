@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
@@ -77,13 +76,13 @@ public class Server {
 
         //服务端采用单一长连接的模式，这里所支持的最大连接数应该和机器本身的性能有关
         //连接防护的handler应该绑定在Main-Reactor上
-        bootstrap.handler(new MaxConnectionLimitHandler(MAX_CONNECTION_NUMS));
+        bootstrap.handler(new MaxConnectionLimitHandler(serverConfig.getMaxConnections()));
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                System.out.println("初始化provider过程");
+                LOGGER.info("初始化provider过程");
                 ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
-                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(DEFAULT_MSG_LENGTH, delimiter));
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(serverConfig.getMaxServerRequestData(), delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 //这里面需要注意出现堵塞的情况发生，建议将核心业务内容分配给业务线程池处理
@@ -95,7 +94,7 @@ public class Server {
         SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
         IS_STARTED = true;
-        LOGGER.info("server is started!");
+        LOGGER.info("[startApplication] server is started!");
     }
 
     public void initServerConfig() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
