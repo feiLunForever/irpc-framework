@@ -39,9 +39,11 @@ public class NioSocketClient extends Thread {
         InetSocketAddress inetSocketAddress = new InetSocketAddress(8888);
         selector = Selector.open();
         socketChannel = SocketChannel.open();
+        //设置为非阻塞模式
         socketChannel.configureBlocking(false);
         socketChannel.connect(inetSocketAddress);
         synchronized (selector) {
+            //注册到channel上，告诉channel感兴趣的事件是 连接事件
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
         }
     }
@@ -60,21 +62,26 @@ public class NioSocketClient extends Thread {
                             selectionKey = iter.next();
                             iter.remove();
                         }
- 
+                        //下边是针对不同的事件类型进行处理
+
+                        //连接类型
                         if (selectionKey.isConnectable()) {
                             finishConnect(selectionKey);
                         }
+
+                        //写事件类型
                         if (selectionKey.isWritable()) {
 //                            sendWithPak(selectionKey);
                             send(selectionKey);
                         }
+
+                        //读事件类型
                         if (selectionKey.isReadable()) {
                             read(selectionKey);
                         }
                     }
                 }
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -85,12 +92,12 @@ public class NioSocketClient extends Thread {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         try {
             socketChannel.finishConnect();
+            //连接获取之后，继续订阅感兴趣的事件类型，读和写
             synchronized (selector) {
                 socketChannel.register(selector, SelectionKey.OP_WRITE);
                 key.interestOps(SelectionKey.OP_WRITE);
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -124,18 +131,15 @@ public class NioSocketClient extends Thread {
  
                     channel.write(byteBuffer);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         }
-        // key.interestOps(SelectionKey.OP_READ);
         try {
             synchronized (selector) {
                 channel.register(selector, SelectionKey.OP_READ);
             }
         } catch (ClosedChannelException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
