@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -39,6 +40,7 @@ import java.util.Map;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
+import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_MSG_LENGTH;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -77,8 +79,8 @@ public class Client {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-//                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
-//                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, delimiter));
+                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(DEFAULT_MSG_LENGTH, delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ClientHandler());
@@ -167,11 +169,15 @@ public class Client {
                     RpcInvocation rpcInvocation = SEND_QUEUE.take();
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
                     if (channelFuture != null) {
-                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
-                        channelFuture.channel().writeAndFlush(rpcProtocol);
+                        Channel channel = channelFuture.channel();
+                        //如果出现服务端中断的情况需要兼容下
+                        if(channel.isOpen()){
+                            RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                            channel.writeAndFlush(rpcProtocol);
+                        }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("[AsyncSendJob] e is ",e);
                 }
             }
         }

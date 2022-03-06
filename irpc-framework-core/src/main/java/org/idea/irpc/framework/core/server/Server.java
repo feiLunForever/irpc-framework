@@ -10,15 +10,17 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
+import org.idea.irpc.framework.core.common.ServerServiceSemaphoreWrapper;
+import org.idea.irpc.framework.core.common.annotations.SPI;
 import org.idea.irpc.framework.core.common.config.PropertiesBootstrap;
 import org.idea.irpc.framework.core.common.config.ServerConfig;
 import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.filter.IServerFilter;
-import org.idea.irpc.framework.core.filter.server.ServerFilterChain;
+import org.idea.irpc.framework.core.filter.server.ServerAfterFilterChain;
+import org.idea.irpc.framework.core.filter.server.ServerBeforeFilterChain;
 import org.idea.irpc.framework.core.registy.RegistryService;
 import org.idea.irpc.framework.core.registy.URL;
 import org.idea.irpc.framework.core.registy.zookeeper.AbstractRegister;
@@ -29,10 +31,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
-import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
+import static org.idea.irpc.framework.core.common.constants.RpcConstants.*;
 import static org.idea.irpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -72,16 +75,18 @@ public class Server {
                 .option(ChannelOption.SO_RCVBUF, 16 * 1024)
                 .option(ChannelOption.SO_KEEPALIVE, true);
 
+        //服务端采用单一长连接的模式，这里所支持的最大连接数应该和机器本身的性能有关
+        //连接防护的handler应该绑定在Main-Reactor上
+        bootstrap.handler(new MaxConnectionLimitHandler(MAX_CONNECTION_NUMS));
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 System.out.println("初始化provider过程");
-//                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
-//                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192,delimiter));
+                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(DEFAULT_MSG_LENGTH, delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 //这里面需要注意出现堵塞的情况发生，建议将核心业务内容分配给业务线程池处理
-//                ch.pipeline().addLast(new ServerHandler(SERVER_CONFIG.getMaxConnections()));
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
@@ -98,7 +103,7 @@ public class Server {
         this.setServerConfig(serverConfig);
         SERVER_CONFIG = serverConfig;
         //初始化线程池和队列的配置
-        SERVER_CHANNEL_DISPATCHER.init(SERVER_CONFIG.getServerQueueSize(),SERVER_CONFIG.getServerBizThreadNums());
+        SERVER_CHANNEL_DISPATCHER.init(SERVER_CONFIG.getServerQueueSize(), SERVER_CONFIG.getServerBizThreadNums());
         //序列化技术初始化
         String serverSerialize = serverConfig.getServerSerialize();
         EXTENSION_LOADER.loadExtension(SerializeFactory.class);
@@ -111,15 +116,22 @@ public class Server {
         //过滤链技术初始化
         EXTENSION_LOADER.loadExtension(IServerFilter.class);
         LinkedHashMap<String, Class> iServerFilterClassMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
-        ServerFilterChain serverFilterChain = new ServerFilterChain();
+        ServerBeforeFilterChain serverBeforeFilterChain = new ServerBeforeFilterChain();
+        ServerAfterFilterChain serverAfterFilterChain = new ServerAfterFilterChain();
         for (String iServerFilterKey : iServerFilterClassMap.keySet()) {
             Class iServerFilterClass = iServerFilterClassMap.get(iServerFilterKey);
-            if(iServerFilterClass==null){
+            if (iServerFilterClass == null) {
                 throw new RuntimeException("no match iServerFilter type for " + iServerFilterKey);
             }
-            serverFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            SPI spi = (SPI) iServerFilterClass.getDeclaredAnnotation(SPI.class);
+            if (spi != null && "before".equals(spi.value())) {
+                serverBeforeFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            } else if(spi != null && "after".equals(spi.value())){
+                serverAfterFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            }
         }
-        SERVER_FILTER_CHAIN = serverFilterChain;
+        SERVER_AFTER_FILTER_CHAIN = serverAfterFilterChain;
+        SERVER_BEFORE_FILTER_CHAIN = serverBeforeFilterChain;
     }
 
     /**
@@ -156,6 +168,8 @@ public class Server {
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
+        //设置服务端的限流器
+        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(),new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
         if (CommonUtils.isNotEmpty(serviceWrapper.getServiceToken())) {
             PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);

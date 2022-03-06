@@ -39,7 +39,6 @@ public class DataServiceImpl implements DataService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("hahahha");
         return "three";
 //        throw new RuntimeException("测试异常");
     }

@@ -30,7 +30,9 @@ public class RpcConstants {
 
     public static final Integer DEFAULT_QUEUE_SIZE = 512;
 
-    public static final Integer MAX_CONNECTION_NUMS = 1000;
+    public static final Integer MAX_CONNECTION_NUMS = 2;
 
-    public static final String DEFAULT_DECODE_CHAR = "&irpc-end&";
+    public static final String DEFAULT_DECODE_CHAR = "$_i0#Xsop1_$";
+
+    public static final int DEFAULT_MSG_LENGTH = 1024 * 10;
 }

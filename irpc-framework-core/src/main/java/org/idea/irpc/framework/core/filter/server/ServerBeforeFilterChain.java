@@ -10,7 +10,7 @@ import java.util.List;
  * @Author linhao
  * @Date created in 8:40 下午 2022/1/29
  */
-public class ServerFilterChain {
+public class ServerBeforeFilterChain {
 
     private static List<IServerFilter> iServerFilters = new ArrayList<>();
 

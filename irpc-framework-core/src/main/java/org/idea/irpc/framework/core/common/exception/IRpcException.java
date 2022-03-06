@@ -1,30 +1,25 @@
 package org.idea.irpc.framework.core.common.exception;
 
-import org.idea.irpc.framework.core.common.RpcProtocol;
+import org.idea.irpc.framework.core.common.RpcInvocation;
 
 /**
  * @Author linhao
  * @Date created in 9:04 上午 2022/3/3
  */
-public class IRpcException extends RuntimeException{
+public class IRpcException extends RuntimeException {
 
-    private RpcProtocol rpcProtocol;
+    private RpcInvocation rpcInvocation;
 
-    public RpcProtocol getRpcProtocol() {
-        return rpcProtocol;
+    public RpcInvocation getRpcInvocation() {
+        return rpcInvocation;
     }
 
-    public void setRpcProtocol(RpcProtocol rpcProtocol) {
-        this.rpcProtocol = rpcProtocol;
+    public void setRpcInvocation(RpcInvocation rpcInvocation) {
+        this.rpcInvocation = rpcInvocation;
     }
 
-    public IRpcException(RpcProtocol rpcProtocol){
-        this.rpcProtocol = rpcProtocol;
-    }
-
-    public IRpcException(RpcProtocol rpcProtocol,String message){
-        super(message);
-        this.rpcProtocol = rpcProtocol;
+    public IRpcException(RpcInvocation rpcInvocation) {
+        this.rpcInvocation = rpcInvocation;
     }
 
 }

@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.filter.server;
 
 import org.idea.irpc.framework.core.common.RpcInvocation;
+import org.idea.irpc.framework.core.common.annotations.SPI;
 import org.idea.irpc.framework.core.common.utils.CommonUtils;
 import org.idea.irpc.framework.core.filter.IServerFilter;
 import org.idea.irpc.framework.core.server.ServiceWrapper;
@@ -13,6 +14,7 @@ import static org.idea.irpc.framework.core.common.cache.CommonServerCache.PROVID
  * @Author linhao
  * @Date created in 9:04 上午 2022/2/1
  */
+@SPI("before")
 public class ServerTokenFilterImpl implements IServerFilter {
 
     @Override

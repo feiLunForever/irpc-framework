@@ -29,13 +29,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         if (rpcInvocation.getE() != null) {
             rpcInvocation.getE().printStackTrace();
         }
-        boolean isErrorMsgNull = StringUtil.isNullOrEmpty(rpcInvocation.getErrorMsg());
-        if(!isErrorMsgNull){
-            logger.error(rpcInvocation.getErrorMsg());
-        }
         //如果是单纯异步模式的话，响应Map集合中不会存在映射值
         Object r = rpcInvocation.getAttachments().get("async");
-        if (!isErrorMsgNull && r != null && Boolean.valueOf(String.valueOf(r))) {
+        if (r != null && Boolean.valueOf(String.valueOf(r))) {
             ReferenceCountUtil.release(msg);
             return;
         }

@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.filter.server;
 
 import org.idea.irpc.framework.core.common.RpcInvocation;
+import org.idea.irpc.framework.core.common.annotations.SPI;
 import org.idea.irpc.framework.core.filter.IServerFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
  * @Author linhao
  * @Date created in 8:01 下午 2022/1/29
  */
+@SPI("before")
 public class ServerLogFilterImpl implements IServerFilter {
 
     private static Logger logger = LoggerFactory.getLogger(ServerLogFilterImpl.class);

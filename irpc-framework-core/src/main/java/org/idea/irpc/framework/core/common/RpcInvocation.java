@@ -24,8 +24,6 @@ public class RpcInvocation implements Serializable {
 
     private Throwable e;
 
-    private String errorMsg;
-
     private boolean isDemote;
 
     private int retry;
@@ -52,14 +50,6 @@ public class RpcInvocation implements Serializable {
 
     public void setE(Throwable e) {
         this.e = e;
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
-    }
-
-    public void setErrorMsg(String errorMsg) {
-        this.errorMsg = errorMsg;
     }
 
     private Map<String, Object> attachments = new ConcurrentHashMap<>();
