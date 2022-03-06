@@ -70,7 +70,6 @@ public class NioSocketClient extends Thread {
 
                         //写事件类型
                         if (selectionKey.isWritable()) {
-//                            sendWithPak(selectionKey);
                             send(selectionKey);
                         }
 
@@ -85,7 +84,12 @@ public class NioSocketClient extends Thread {
             }
         }
     }
- 
+
+    /**
+     * 结束连接
+     *
+     * @param key
+     */
     public void finishConnect(SelectionKey key) {
         System.out.println("client finish connect!");
         SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -101,7 +105,12 @@ public class NioSocketClient extends Thread {
         }
     }
 
-
+    /**
+     * 读取数据信息
+     *
+     * @param key
+     * @throws IOException
+     */
     public void read(SelectionKey key) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
@@ -117,17 +126,22 @@ public class NioSocketClient extends Thread {
     }
 
 
+    /**
+     * 发送数据信息
+     *
+     * @param key
+     */
     public void send(SelectionKey key) {
         SocketChannel channel = (SocketChannel) key.channel();
- 
+
         for (int i = 0; i < 10; i++) {
             String ss = i + "Server ,how are you?";
             ByteBuffer byteBuffer = ByteBuffer.wrap(ss.getBytes());
- 
+
             System.out.println("[client] send:{" + i + "}-- " + ss);
             while (byteBuffer.hasRemaining()) {
                 try {
- 
+
                     channel.write(byteBuffer);
                 } catch (IOException e) {
                     e.printStackTrace();
