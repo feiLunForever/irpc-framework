@@ -21,7 +21,7 @@ public class NioSocketClient extends Thread {
     private int clientId;
 
 
-    public static void main(String args[]) throws IOException, InterruptedException {
+    public static void main(String args[]) throws IOException{
         NioSocketClient client = new NioSocketClient();
         client.initClient();
         System.out.println("starting client");
@@ -63,7 +63,6 @@ public class NioSocketClient extends Thread {
                             iter.remove();
                         }
                         //下边是针对不同的事件类型进行处理
-
                         //连接类型
                         if (selectionKey.isConnectable()) {
                             finishConnect(selectionKey);
@@ -122,7 +121,7 @@ public class NioSocketClient extends Thread {
         SocketChannel channel = (SocketChannel) key.channel();
  
         for (int i = 0; i < 10; i++) {
-            String ss = i + "Server ,how are you? this is package message from NioSocketClient!";
+            String ss = i + "Server ,how are you?";
             ByteBuffer byteBuffer = ByteBuffer.wrap(ss.getBytes());
  
             System.out.println("[client] send:{" + i + "}-- " + ss);
