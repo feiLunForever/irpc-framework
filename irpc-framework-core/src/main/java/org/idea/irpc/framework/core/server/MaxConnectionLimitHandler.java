@@ -36,7 +36,6 @@ public class MaxConnectionLimitHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("connection limit handler");
         Channel channel = (Channel) msg;
         int conn = numConnection.incrementAndGet();
         if (conn > 0 && conn <= maxConnectionNum) {
@@ -52,7 +51,7 @@ public class MaxConnectionLimitHandler extends ChannelInboundHandlerAdapter {
             channel.config().setOption(ChannelOption.SO_LINGER, 0);
             channel.unsafe().closeForcibly();
             numDroppedConnections.increment();
-            //这里加入一道cas可以减少一些并发请求的压力,不定期地执行一些日志打印
+            //这里加入一道cas可以减少一些并发请求的压力,定期地执行一些日志打印
             if (loggingScheduled.compareAndSet(false, true)) {
                 ctx.executor().schedule(this::writeNumDroppedConnectionLog,1, TimeUnit.SECONDS);
             }

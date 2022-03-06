@@ -51,6 +51,7 @@ public class ServerChannelDispatcher {
                             RpcInvocation rpcInvocation = SERVER_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(), RpcInvocation.class);
                             //执行过滤链路
                             try {
+                                //前置过滤器
                                 SERVER_BEFORE_FILTER_CHAIN.doFilter(rpcInvocation);
                             }catch (Exception cause){
                                 //针对自定义异常进行捕获，并且直接返回异常信息给到客户端，然后打印结果
@@ -67,18 +68,21 @@ public class ServerChannelDispatcher {
                             Object aimObject = PROVIDER_CLASS_MAP.get(rpcInvocation.getTargetServiceName());
                             Method[] methods = aimObject.getClass().getDeclaredMethods();
                             Object result = null;
+                            //业务函数实际执行位置
                             for (Method method : methods) {
                                 if (method.getName().equals(rpcInvocation.getTargetMethod())) {
                                     if (method.getReturnType().equals(Void.TYPE)) {
                                         try {
                                             method.invoke(aimObject, rpcInvocation.getArgs());
                                         } catch (Exception e) {
+                                            //业务异常
                                             rpcInvocation.setE(e);
                                         }
                                     } else {
                                         try {
                                             result = method.invoke(aimObject, rpcInvocation.getArgs());
                                         } catch (Exception e) {
+                                            //业务异常
                                             rpcInvocation.setE(e);
                                         }
                                     }
@@ -86,6 +90,7 @@ public class ServerChannelDispatcher {
                                 }
                             }
                             rpcInvocation.setResponse(result);
+                            //后置过滤器
                             SERVER_AFTER_FILTER_CHAIN.doFilter(rpcInvocation);
                             RpcProtocol respRpcProtocol = new RpcProtocol(SERVER_SERIALIZE_FACTORY.serialize(rpcInvocation));
                             serverChannelReadData.getChannelHandlerContext().writeAndFlush(respRpcProtocol);

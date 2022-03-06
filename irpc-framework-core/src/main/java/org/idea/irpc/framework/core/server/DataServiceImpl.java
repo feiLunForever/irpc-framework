@@ -29,17 +29,12 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public void testError() {
-        System.out.println(1/0);
+        System.out.println(1 / 0);
     }
 
     @Override
     public String testErrorV2() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return "three";
-//        throw new RuntimeException("测试异常");
+        throw new RuntimeException("测试异常");
+//        return "three";
     }
 }

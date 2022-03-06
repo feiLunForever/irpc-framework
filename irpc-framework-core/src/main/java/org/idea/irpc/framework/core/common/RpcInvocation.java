@@ -24,17 +24,7 @@ public class RpcInvocation implements Serializable {
 
     private Throwable e;
 
-    private boolean isDemote;
-
     private int retry;
-
-    public boolean isDemote() {
-        return isDemote;
-    }
-
-    public void setDemote(boolean demote) {
-        isDemote = demote;
-    }
 
     public int getRetry() {
         return retry;
@@ -109,9 +99,9 @@ public class RpcInvocation implements Serializable {
                 "targetMethod='" + targetMethod + '\'' +
                 ", targetServiceName='" + targetServiceName + '\'' +
                 ", args=" + Arrays.toString(args) +
-                ", uuid='" + uuid + '\'' +
                 ", response=" + response +
                 ", e=" + e +
+                ", retry=" + retry +
                 ", attachments=" + attachments +
                 '}';
     }

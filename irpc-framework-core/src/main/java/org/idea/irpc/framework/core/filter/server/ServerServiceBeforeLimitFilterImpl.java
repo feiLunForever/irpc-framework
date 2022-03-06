@@ -3,15 +3,12 @@ package org.idea.irpc.framework.core.filter.server;
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.ServerServiceSemaphoreWrapper;
 import org.idea.irpc.framework.core.common.annotations.SPI;
-import org.idea.irpc.framework.core.common.exception.IRpcException;
 import org.idea.irpc.framework.core.common.exception.MaxServiceLimitRequestException;
 import org.idea.irpc.framework.core.filter.IServerFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ConcurrentModificationException;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.SERVER_SERVICE_SEMAPHORE_MAP;
 
@@ -30,6 +27,7 @@ public class ServerServiceBeforeLimitFilterImpl implements IServerFilter {
     public void doFilter(RpcInvocation rpcInvocation) {
         String serviceName = rpcInvocation.getTargetServiceName();
         ServerServiceSemaphoreWrapper serverServiceSemaphoreWrapper = SERVER_SERVICE_SEMAPHORE_MAP.get(serviceName);
+        //从缓存中提取semaphore对象
         Semaphore semaphore = serverServiceSemaphoreWrapper.getSemaphore();
         boolean tryResult = semaphore.tryAcquire();
         if (!tryResult) {
