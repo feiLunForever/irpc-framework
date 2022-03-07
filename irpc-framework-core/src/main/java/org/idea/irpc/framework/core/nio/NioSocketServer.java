@@ -46,12 +46,9 @@ public class NioSocketServer extends Thread {
                         //读事件，处理数据读取
                         if (selectionKey.isReadable()) {
                             read(selectionKey);
-//                            readWithPackage(selectionKey);
                         }
                         //写事件，处理写数据
                         if (selectionKey.isWritable()) {
-//                             write(selectionKey);
-                            System.out.println();
                         }
                     }
                 }
