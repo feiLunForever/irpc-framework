@@ -1,0 +1,16 @@
+package org.idea.irpc.framework.provider.springboot;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * @Author linhao
+ * @Date created in 10:42 下午 2022/3/7
+ */
+@SpringBootApplication
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class);
+    }
+}

@@ -25,8 +25,8 @@ public class ProxyCompareTest {
 
     static {
         client = new Client();
-        rpcReference = client.initClientApplication();
         try {
+            rpcReference = client.initClientApplication();
             RpcReferenceWrapper<DataService> rpcReferenceWrapper = new RpcReferenceWrapper();
             rpcReferenceWrapper.setAimClass(DataService.class);
             rpcReferenceWrapper.setGroup("default");

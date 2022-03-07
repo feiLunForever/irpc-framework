@@ -9,31 +9,31 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>irpc-framework-provider</artifactId>
+    <artifactId>irpc-framework-spring-starter</artifactId>
+    <description>结合Spring容器的接入模块</description>
 
     <properties>
         <irpc-framework-core.version>1.0-SNAPSHOT</irpc-framework-core.version>
     </properties>
 
     <dependencies>
-
-<!--        <dependency>-->
-<!--            <groupId>org.idea</groupId>-->
-<!--            <artifactId>irpc-framework-core</artifactId>-->
-<!--            <version>1.0-SNAPSHOT</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-
         <dependency>
-            <groupId>org.idea</groupId>
-            <artifactId>irpc-framework-spring-starter</artifactId>
-            <version>${irpc-framework-core.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>2.1.13.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.1.13.RELEASE</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.1.13.RELEASE</version>
+            <groupId>org.idea</groupId>
+            <artifactId>irpc-framework-core</artifactId>
+            <version>${irpc-framework-core.version}</version>
         </dependency>
 
     </dependencies>
