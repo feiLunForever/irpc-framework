@@ -49,14 +49,16 @@ public class JavassistInvocationHandler implements InvocationHandler {
         int retryTimes = 0;
         while (System.currentTimeMillis() - beginTime < timeOut || rpcInvocation.getRetry() > 0) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
-            if (object instanceof RpcInvocation) {
+            if (object!=null && object instanceof RpcInvocation) {
                 RpcInvocation rpcInvocationResp = (RpcInvocation) object;
                 //正常结果
-                if (rpcInvocationResp.getRetry() == 0 && rpcInvocationResp.getE() == null) {
+                if (rpcInvocationResp.getRetry() == 0 || (rpcInvocationResp.getRetry()!=0 && rpcInvocationResp.getE() == null)){
+                    RESP_MAP.remove(rpcInvocation.getUuid());
                     return rpcInvocationResp.getResponse();
                 } else if (rpcInvocationResp.getE() != null) {
                     //每次重试之后都会将retry值扣减1
                     if (rpcInvocationResp.getRetry() == 0) {
+                        RESP_MAP.remove(rpcInvocation.getUuid());
                         return rpcInvocationResp.getResponse();
                     }
                     //如果是因为超时的情况，才会触发重试规则，否则重试机制不生效

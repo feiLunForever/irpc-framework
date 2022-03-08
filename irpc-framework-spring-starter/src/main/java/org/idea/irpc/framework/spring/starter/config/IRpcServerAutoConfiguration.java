@@ -4,7 +4,10 @@ import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.server.ApplicationShutdownHook;
 import org.idea.irpc.framework.core.server.Server;
 import org.idea.irpc.framework.core.server.ServiceWrapper;
+import org.idea.irpc.framework.spring.starter.common.IRpcReference;
 import org.idea.irpc.framework.spring.starter.common.IRpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +19,9 @@ import java.util.Map;
  * @Author linhao
  * @Date created in 7:29 下午 2022/3/7
  */
-public class IRpcAutoConfiguration implements InitializingBean, ApplicationContextAware {
+public class IRpcServerAutoConfiguration implements InitializingBean, ApplicationContextAware {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IRpcServerAutoConfiguration.class);
 
     private ApplicationContext applicationContext;
 

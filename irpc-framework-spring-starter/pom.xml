@@ -11,6 +11,18 @@
 
     <artifactId>irpc-framework-spring-starter</artifactId>
     <description>结合Spring容器的接入模块</description>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <properties>
         <irpc-framework-core.version>1.0-SNAPSHOT</irpc-framework-core.version>
@@ -34,6 +46,7 @@
             <groupId>org.idea</groupId>
             <artifactId>irpc-framework-core</artifactId>
             <version>${irpc-framework-core.version}</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

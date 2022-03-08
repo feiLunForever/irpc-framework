@@ -190,6 +190,7 @@ public class Server {
                 }
                 for (URL url : PROVIDER_URL_SET) {
                     REGISTRY_SERVICE.register(url);
+                    LOGGER.info("[Server] export service {}",url.getServiceName());
                 }
             }
         });
