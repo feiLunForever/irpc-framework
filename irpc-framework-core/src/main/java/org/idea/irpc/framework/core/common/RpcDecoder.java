@@ -22,40 +22,35 @@ public class RpcDecoder extends ByteToMessageDecoder {
     public final int BASE_LENGTH = 2 + 4;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out)  {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
         if (byteBuf.readableBytes() >= BASE_LENGTH) {
-            byteBuf.readShort();
-            int len = byteBuf.readInt();
-            byte[] body = new byte[len];
-            byteBuf.readBytes(body);
-            RpcProtocol rpcProtocol = new RpcProtocol(body);
+            //防止收到一些体积过大的数据包 目前限制在1000大小，后期版本这里是可配置模式
+            if (byteBuf.readableBytes() > 1000) {
+                byteBuf.skipBytes(byteBuf.readableBytes());
+            }
+            int beginReader;
+            while (true) {
+                beginReader = byteBuf.readerIndex();
+                byteBuf.markReaderIndex();
+                if (byteBuf.readShort() == MAGIC_NUMBER) {
+                    break;
+                } else {
+                    // 不是魔数开头，说明是非法的客户端发来的数据包
+                    ctx.close();
+                    return;
+                }
+            }
+
+            int length = byteBuf.readInt();
+            //说明剩余的数据包不是完整的，这里需要重置下读索引
+            if (byteBuf.readableBytes() < length) {
+                byteBuf.readerIndex(beginReader);
+                return;
+            }
+            byte[] data = new byte[length];
+            byteBuf.readBytes(data);
+            RpcProtocol rpcProtocol = new RpcProtocol(data);
             out.add(rpcProtocol);
-//            if (byteBuf.readableBytes() > 2046) {
-//                byteBuf.skipBytes(byteBuf.readableBytes());
-//            }
-//            int beginReader;
-//            while (true) {
-//                beginReader = byteBuf.readerIndex();
-//                byteBuf.markReaderIndex();
-//                if (byteBuf.readShort() == MAGIC_NUMBER) {
-//                    break;
-//                }
-//                byteBuf.resetReaderIndex();
-//                byteBuf.readByte();
-//
-//                if (byteBuf.readInt() < BASE_LENGTH) {
-//                    return;
-//                }
-//            }
-
-//            int length = byteBuf.readInt();
-//            if (byteBuf.readableBytes() < length) {
-//                byteBuf.readerIndex(beginReader);
-//                return;
-//            }
-//            byte[] data = new byte[length];
-//            byteBuf.readBytes(data);
-
         }
     }
 }
