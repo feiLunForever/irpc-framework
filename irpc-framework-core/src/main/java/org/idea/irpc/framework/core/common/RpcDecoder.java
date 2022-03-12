@@ -30,32 +30,6 @@ public class RpcDecoder extends ByteToMessageDecoder {
             byteBuf.readBytes(body);
             RpcProtocol rpcProtocol = new RpcProtocol(body);
             out.add(rpcProtocol);
-//            if (byteBuf.readableBytes() > 2046) {
-//                byteBuf.skipBytes(byteBuf.readableBytes());
-//            }
-//            int beginReader;
-//            while (true) {
-//                beginReader = byteBuf.readerIndex();
-//                byteBuf.markReaderIndex();
-//                if (byteBuf.readShort() == MAGIC_NUMBER) {
-//                    break;
-//                }
-//                byteBuf.resetReaderIndex();
-//                byteBuf.readByte();
-//
-//                if (byteBuf.readInt() < BASE_LENGTH) {
-//                    return;
-//                }
-//            }
-
-//            int length = byteBuf.readInt();
-//            if (byteBuf.readableBytes() < length) {
-//                byteBuf.readerIndex(beginReader);
-//                return;
-//            }
-//            byte[] data = new byte[length];
-//            byteBuf.readBytes(data);
-
         }
     }
 }

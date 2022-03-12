@@ -4,7 +4,6 @@ import org.idea.irpc.framework.core.common.event.IRpcListenerLoader;
 import org.idea.irpc.framework.core.server.ApplicationShutdownHook;
 import org.idea.irpc.framework.core.server.Server;
 import org.idea.irpc.framework.core.server.ServiceWrapper;
-import org.idea.irpc.framework.spring.starter.common.IRpcReference;
 import org.idea.irpc.framework.spring.starter.common.IRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +24,7 @@ public class IRpcServerAutoConfiguration implements InitializingBean, Applicatio
 
     private ApplicationContext applicationContext;
 
+    @Override
     public void afterPropertiesSet() throws Exception {
         Server server = new Server();
         server.initServerConfig();
@@ -43,6 +43,7 @@ public class IRpcServerAutoConfiguration implements InitializingBean, Applicatio
         server.startApplication();
     }
 
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
