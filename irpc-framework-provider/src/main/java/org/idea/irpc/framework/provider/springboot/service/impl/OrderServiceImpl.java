@@ -10,10 +10,15 @@ import java.util.List;
  * @Author linhao
  * @Date created in 6:41 下午 2022/3/8
  */
-@IRpcService
+@IRpcService(serviceToken = "order-token",group = "order-group",limit = 2)
 public class OrderServiceImpl implements OrderService {
 
     public List<String> getOrderNoList() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return Arrays.asList("item1","item2");
     }
 }

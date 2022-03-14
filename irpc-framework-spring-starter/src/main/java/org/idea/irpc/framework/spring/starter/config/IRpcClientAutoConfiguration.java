@@ -36,6 +36,7 @@ public class IRpcClientAutoConfiguration implements BeanPostProcessor , Initiali
                     rpcReferenceWrapper.setAimClass(field.getType());
                     rpcReferenceWrapper.setGroup(iRpcReference.group());
                     rpcReferenceWrapper.setServiceToken(iRpcReference.serviceToken());
+                    rpcReferenceWrapper.setUrl(iRpcReference.url());
                     rpcReferenceWrapper.setTimeOut(iRpcReference.timeOut());
                     //失败重试次数
                     rpcReferenceWrapper.setRetry(iRpcReference.retry());

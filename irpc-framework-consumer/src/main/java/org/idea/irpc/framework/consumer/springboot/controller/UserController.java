@@ -21,7 +21,10 @@ public class UserController {
     @IRpcReference
     private UserService userService;
 
-    @IRpcReference
+    /**
+     * 验证各类参数配置是否异常
+     */
+    @IRpcReference(group = "order-group",serviceToken = "order-token",url = "127.0.0.1:9090")
     private OrderService orderService;
 
     @GetMapping(value = "/test")
@@ -31,7 +34,9 @@ public class UserController {
 
     @GetMapping(value = "/get-order-no")
     public List<String> getOrderNo(){
-        return orderService.getOrderNoList();
+        List<String> result =  orderService.getOrderNoList();
+        System.out.println(result);
+        return result;
     }
 
 

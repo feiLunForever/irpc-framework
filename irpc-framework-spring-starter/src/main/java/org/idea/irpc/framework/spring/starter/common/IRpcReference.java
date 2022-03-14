@@ -11,6 +11,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface IRpcReference {
 
+    String url() default "";
 
     String group() default "default";
 

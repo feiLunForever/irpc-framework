@@ -1,6 +1,7 @@
 package org.idea.irpc.framework.core.client;
 
 
+import com.esotericsoftware.minlog.Log;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.idea.irpc.framework.core.common.ChannelFutureWrapper;
@@ -119,9 +120,21 @@ public class ConnectionHandler {
         String providerServiceName = rpcInvocation.getTargetServiceName();
         ChannelFutureWrapper[] channelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
         if (channelFutureWrappers == null || channelFutureWrappers.length == 0) {
-            throw new RuntimeException("no provider exist for " + providerServiceName);
+            rpcInvocation.setRetry(0);
+            rpcInvocation.setE(new RuntimeException("no provider exist for " + providerServiceName));
+            rpcInvocation.setResponse(null);
+            //直接交给响应线程那边处理（响应线程在代理类内部的invoke函数中，那边会取出对应的uuid的值，然后判断）
+            RESP_MAP.put(rpcInvocation.getUuid(),rpcInvocation);
+            Log.error("channelFutureWrapper is null");
+            return null;
         }
-        CLIENT_FILTER_CHAIN.doFilter(Arrays.asList(channelFutureWrappers),rpcInvocation);
+        List<ChannelFutureWrapper> channelFutureWrappersList = new ArrayList<>(channelFutureWrappers.length);
+        for (int i = 0; i < channelFutureWrappers.length; i++) {
+            channelFutureWrappersList.add(channelFutureWrappers[i]);
+        }
+        //在客户端会做分组的过滤操作
+        //这里不能用Arrays.asList 因为它所生成的list是一个不可修改的list
+        CLIENT_FILTER_CHAIN.doFilter(channelFutureWrappersList, rpcInvocation);
         Selector selector = new Selector();
         selector.setProviderServiceName(providerServiceName);
         selector.setChannelFutureWrappers(channelFutureWrappers);
