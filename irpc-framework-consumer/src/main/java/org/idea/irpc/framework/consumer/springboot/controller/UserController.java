@@ -24,13 +24,22 @@ public class UserController {
     /**
      * 验证各类参数配置是否异常
      */
-    @IRpcReference(group = "order-group",serviceToken = "order-token",url = "127.0.0.1:9090")
+    @IRpcReference(group = "order-group",serviceToken = "order-token")
     private OrderService orderService;
 
     @GetMapping(value = "/test")
     public void test(){
         userService.test();
     }
+
+
+    @GetMapping(value = "/testMaxData")
+    public String testMaxData(int i){
+        String result = orderService.testMaxData(i);
+        System.out.println(result.length());
+        return result;
+    }
+
 
     @GetMapping(value = "/get-order-no")
     public List<String> getOrderNo(){
