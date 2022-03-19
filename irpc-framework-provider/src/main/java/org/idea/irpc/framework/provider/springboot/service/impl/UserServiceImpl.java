@@ -10,6 +10,7 @@ import org.idea.irpc.framework.spring.starter.common.IRpcService;
 @IRpcService
 public class UserServiceImpl implements UserService {
 
+    @Override
     public void test() {
         System.out.println("test");
     }
