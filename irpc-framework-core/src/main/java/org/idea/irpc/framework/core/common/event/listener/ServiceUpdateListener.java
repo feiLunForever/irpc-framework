@@ -59,6 +59,7 @@ public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
                 ChannelFuture channelFuture = null;
                 try {
                     channelFuture = ConnectionHandler.createChannelFuture(host, port);
+                    LOGGER.debug("channelFuture reconnect,server is {}:{}",host,port);
                     channelFutureWrapper.setChannelFuture(channelFuture);
                     newChannelFutureWrapper.add(channelFutureWrapper);
                     finalUrl.add(newProviderUrl);

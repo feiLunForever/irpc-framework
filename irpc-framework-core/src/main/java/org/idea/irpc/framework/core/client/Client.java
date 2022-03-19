@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
@@ -107,7 +108,7 @@ public class Client {
             try {
                 EXTENSION_LOADER.loadExtension(RegistryService.class);
                 Map<String, Class> registerMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
-                Class registerClass =  registerMap.get(clientConfig.getRegisterType());
+                Class registerClass = registerMap.get(clientConfig.getRegisterType());
                 ABSTRACT_REGISTER = (AbstractRegister) registerClass.newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("registryServiceType unKnow,error is ", e);
@@ -155,6 +156,8 @@ public class Client {
 
     class AsyncSendJob implements Runnable {
 
+        private  AtomicLong atomicLong = new AtomicLong(0);
+
         public AsyncSendJob() {
         }
 
@@ -164,17 +167,18 @@ public class Client {
                 try {
                     //阻塞模式
                     RpcInvocation rpcInvocation = SEND_QUEUE.take();
+                    logger.info("send msg! {}", atomicLong.incrementAndGet());
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
                     if (channelFuture != null) {
                         Channel channel = channelFuture.channel();
                         //如果出现服务端中断的情况需要兼容下
-                        if(channel.isOpen()){
+                        if (channel.isOpen()) {
                             RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
                             channel.writeAndFlush(rpcProtocol);
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("[AsyncSendJob] e is ",e);
+                    logger.error("[AsyncSendJob] e is ", e);
                 }
             }
         }

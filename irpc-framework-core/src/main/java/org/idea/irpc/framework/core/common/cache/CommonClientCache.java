@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 公用缓存 存储请求队列等公共信息
@@ -42,4 +43,5 @@ public class CommonClientCache {
     public static ClientFilterChain CLIENT_FILTER_CHAIN;
     public static AbstractRegister ABSTRACT_REGISTER;
     public static ExtensionLoader EXTENSION_LOADER = new ExtensionLoader();
+    public static AtomicLong addReqTime = new AtomicLong(0);
 }

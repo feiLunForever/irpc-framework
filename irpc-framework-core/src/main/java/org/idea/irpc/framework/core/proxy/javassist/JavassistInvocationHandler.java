@@ -2,14 +2,14 @@ package org.idea.irpc.framework.core.proxy.javassist;
 
 import org.idea.irpc.framework.core.client.RpcReferenceWrapper;
 import org.idea.irpc.framework.core.common.RpcInvocation;
+import sun.rmi.runtime.Log;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
-import static org.idea.irpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
+import static org.idea.irpc.framework.core.common.cache.CommonClientCache.*;
 import static org.idea.irpc.framework.core.common.constants.RpcConstants.DEFAULT_TIMEOUT;
 
 /**
@@ -39,8 +39,11 @@ public class JavassistInvocationHandler implements InvocationHandler {
         rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         rpcInvocation.setRetry(rpcReferenceWrapper.getRetry());
-
-        SEND_QUEUE.add(rpcInvocation);
+        System.out.println("addReqTime:" + addReqTime.incrementAndGet());
+        boolean addResult = SEND_QUEUE.offer(rpcInvocation);
+        if (!addResult) {
+            throw new RuntimeException("send queue is full!");
+        }
         if (rpcReferenceWrapper.isAsync()) {
             return null;
         }
@@ -49,27 +52,30 @@ public class JavassistInvocationHandler implements InvocationHandler {
         int retryTimes = 0;
         while (System.currentTimeMillis() - beginTime < timeOut || rpcInvocation.getRetry() > 0) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
-            if (object!=null && object instanceof RpcInvocation) {
+            if (object != null && object instanceof RpcInvocation) {
                 RpcInvocation rpcInvocationResp = (RpcInvocation) object;
                 //正常结果
-                if (rpcInvocationResp.getRetry() == 0 || (rpcInvocationResp.getRetry()!=0 && rpcInvocationResp.getE() == null)){
+                if (rpcInvocationResp.getRetry() == 0 || (rpcInvocationResp.getRetry() != 0 && rpcInvocationResp.getE() == null)) {
                     RESP_MAP.remove(rpcInvocation.getUuid());
                     return rpcInvocationResp.getResponse();
                 } else if (rpcInvocationResp.getE() != null) {
-                    //每次重试之后都会将retry值扣减1
                     if (rpcInvocationResp.getRetry() == 0) {
                         RESP_MAP.remove(rpcInvocation.getUuid());
                         return rpcInvocationResp.getResponse();
                     }
-                    //如果是因为超时的情况，才会触发重试规则，否则重试机制不生效
-                    if (System.currentTimeMillis() - beginTime > timeOut) {
-                        retryTimes++;
-                        //重新请求
-                        rpcInvocation.setResponse(null);
-                        rpcInvocation.setRetry(rpcInvocationResp.getRetry() - 1);
-                        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
-                        SEND_QUEUE.add(rpcInvocation);
-                    }
+                }
+            }
+            if (OBJECT.equals(object)) {
+                //超时重试
+                if (System.currentTimeMillis() - beginTime > timeOut) {
+                    retryTimes++;
+                    //重新请求
+                    rpcInvocation.setResponse(null);
+                    //每次重试之后都会将retry值扣减1
+                    rpcInvocation.setRetry(rpcInvocation.getRetry() - 1);
+                    RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+                    SEND_QUEUE.add(rpcInvocation);
+                    System.out.println("超时重试");
                 }
             }
         }

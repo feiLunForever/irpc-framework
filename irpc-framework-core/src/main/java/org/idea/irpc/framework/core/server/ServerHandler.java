@@ -7,6 +7,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.idea.irpc.framework.core.common.RpcInvocation;
 import org.idea.irpc.framework.core.common.RpcProtocol;
 import org.idea.irpc.framework.core.common.exception.IRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.util.concurrent.Semaphore;
@@ -21,6 +23,8 @@ import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
  */
 @ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
+
+    private Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -38,5 +42,11 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (channel.isActive()) {
             ctx.close();
         }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.error("this is channelInactive,ctx is{}",ctx);
+        super.channelInactive(ctx);
     }
 }
