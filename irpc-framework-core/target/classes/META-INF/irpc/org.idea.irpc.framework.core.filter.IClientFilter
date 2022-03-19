@@ -1,3 +1,0 @@
-clientLogFilterImpl=org.idea.irpc.framework.core.filter.client.ClientLogFilterImpl
-directInvokeFilterImpl=org.idea.irpc.framework.core.filter.client.DirectInvokeFilterImpl
-groupFilterImpl=org.idea.irpc.framework.core.filter.client.GroupFilterImpl
