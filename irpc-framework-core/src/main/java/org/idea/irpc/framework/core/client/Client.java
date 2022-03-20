@@ -156,7 +156,7 @@ public class Client {
 
     class AsyncSendJob implements Runnable {
 
-        private  AtomicLong atomicLong = new AtomicLong(0);
+        private AtomicLong atomicLong = new AtomicLong(0);
 
         public AsyncSendJob() {
         }
@@ -167,15 +167,15 @@ public class Client {
                 try {
                     //阻塞模式
                     RpcInvocation rpcInvocation = SEND_QUEUE.take();
-                    logger.info("send msg! {}", atomicLong.incrementAndGet());
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
                     if (channelFuture != null) {
                         Channel channel = channelFuture.channel();
                         //如果出现服务端中断的情况需要兼容下
-                        if (channel.isOpen()) {
-                            RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
-                            channel.writeAndFlush(rpcProtocol);
+                        if (!channel.isOpen()) {
+                            throw new RuntimeException("aim channel is not open!rpcInvocation is " + rpcInvocation);
                         }
+                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                        channel.writeAndFlush(rpcProtocol);
                     }
                 } catch (Exception e) {
                     logger.error("[AsyncSendJob] e is ", e);

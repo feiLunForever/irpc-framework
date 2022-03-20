@@ -39,11 +39,7 @@ public class JavassistInvocationHandler implements InvocationHandler {
         rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         rpcInvocation.setRetry(rpcReferenceWrapper.getRetry());
-        System.out.println("addReqTime:" + addReqTime.incrementAndGet());
-        boolean addResult = SEND_QUEUE.offer(rpcInvocation);
-        if (!addResult) {
-            throw new RuntimeException("send queue is full!");
-        }
+        SEND_QUEUE.add(rpcInvocation);
         if (rpcReferenceWrapper.isAsync()) {
             return null;
         }
@@ -75,7 +71,6 @@ public class JavassistInvocationHandler implements InvocationHandler {
                     rpcInvocation.setRetry(rpcInvocation.getRetry() - 1);
                     RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
                     SEND_QUEUE.add(rpcInvocation);
-                    System.out.println("超时重试");
                 }
             }
         }

@@ -39,15 +39,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             throw new IllegalArgumentException("server response is error!");
         }
         RESP_MAP.put(rpcInvocation.getUuid(), rpcInvocation);
-        ReferenceCountUtil.release(msg);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
-        Channel channel = ctx.channel();
-        if (channel.isActive()) {
-            ctx.close();
-        }
     }
 }

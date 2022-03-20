@@ -38,15 +38,11 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         //这里统一做异常捕获？
         cause.printStackTrace();
-        Channel channel = ctx.channel();
-        if (channel.isActive()) {
-            ctx.close();
-        }
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.error("this is channelInactive,ctx is{}",ctx);
+        logger.error("this is channelInactive,ctx is {}",ctx);
         super.channelInactive(ctx);
     }
 }

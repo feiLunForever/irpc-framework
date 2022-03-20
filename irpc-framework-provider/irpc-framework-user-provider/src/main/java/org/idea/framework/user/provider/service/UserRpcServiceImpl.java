@@ -33,6 +33,7 @@ public class UserRpcServiceImpl implements UserRpcService {
             Map<String, String> item = new HashMap<>(2);
             List<String> payHistory = payRpcService.getPayHistoryByGoodNo(goodsNo);
             item.put(goodsNo, payHistory.toString());
+            finalResult.add(item);
         });
         return finalResult;
     }

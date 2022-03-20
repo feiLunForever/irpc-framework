@@ -6,10 +6,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.idea.irpc.framework.core.common.RpcDecoder;
 import org.idea.irpc.framework.core.common.RpcEncoder;
 import org.idea.irpc.framework.core.common.ServerServiceSemaphoreWrapper;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadFactory;
 
 import static org.idea.irpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.idea.irpc.framework.core.common.cache.CommonServerCache.*;
@@ -64,14 +67,20 @@ public class Server {
 
     public void startApplication() throws InterruptedException {
         bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup(2);
+        ThreadFactory threadFactory = new DefaultThreadFactory("irpc-NettyServerWorker", true);
+        int core = Runtime.getRuntime().availableProcessors() + 1;
+        System.out.println("core is " + core);
+        workerGroup = new NioEventLoopGroup(Math.min(core, 32), threadFactory);
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioServerSocketChannel.class);
+        //有数据立即发送
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        //保持连接数
         bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         bootstrap.option(ChannelOption.SO_SNDBUF, 16 * 1024)
                 .option(ChannelOption.SO_RCVBUF, 16 * 1024)
+                //长链接
                 .option(ChannelOption.SO_KEEPALIVE, true);
 
         //服务端采用单一长连接的模式，这里所支持的最大连接数应该和机器本身的性能有关
@@ -126,7 +135,7 @@ public class Server {
             SPI spi = (SPI) iServerFilterClass.getDeclaredAnnotation(SPI.class);
             if (spi != null && "before".equals(spi.value())) {
                 serverBeforeFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
-            } else if(spi != null && "after".equals(spi.value())){
+            } else if (spi != null && "after".equals(spi.value())) {
                 serverAfterFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
             }
         }
@@ -169,7 +178,7 @@ public class Server {
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
         //设置服务端的限流器
-        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(),new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
+        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(), new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
         if (CommonUtils.isNotEmpty(serviceWrapper.getServiceToken())) {
             PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
@@ -190,7 +199,7 @@ public class Server {
                 }
                 for (URL url : PROVIDER_URL_SET) {
                     REGISTRY_SERVICE.register(url);
-                    LOGGER.info("[Server] export service {}",url.getServiceName());
+                    LOGGER.info("[Server] export service {}", url.getServiceName());
                 }
             }
         });

@@ -40,7 +40,7 @@ public class RandomRouterImplV2 implements IRouter {
     @Override
     public ChannelFutureWrapper select(Selector selector) {
         System.out.println("第二版本的负载均衡");
-        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector.getChannelFutureWrappers());
+        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector);
     }
 
     @Override
